@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Android / Gradle build outputs
+*.apk
+*.aab
+*.ap_
+*.aar
+*.dex
+*.class
+**/build/
+**/.gradle/
+local.properties
+
+# Keystores & signing secrets (NEVER commit)
+*.jks
+*.keystore
+keystore.properties
+
+# OS & IDE clutter
+.DS_Store
+**/.DS_Store
+.idea/
+*.iml
+
+# Private / identifying documents & custom branding
+Docs/
+logo/
+invoice-handover/PRD.md

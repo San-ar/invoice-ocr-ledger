@@ -1,0 +1,1275 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<title>Invoice Tracker</title>
+<style>
+:root{--bg:#eefaf4;--ink:#0d2a20;--mut:#587068;--card:#fff;--line:#cfe3d9;--g1:#0fa874;--g2:#066b4a;--bal:#066b4a;--ga:rgba(20,184,128,.30);--gb:rgba(20,184,128,.10);--red:#c0281f;--amb:#8a5a00;--gold:linear-gradient(135deg,#fbeaa0,#d9a516 28%,#fff3b8 48%,#c8961a 70%,#8f6a10);box-sizing:border-box;padding-bottom:env(safe-area-inset-bottom,0px)}
+html{color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,Roboto,sans-serif}
+button,input,select{font:inherit;color:var(--ink)}button{cursor:pointer}
+#app{width:100%;max-width:100%;margin:0;min-height:100vh;background:radial-gradient(circle at 92% 12%,rgba(40,210,150,.35),transparent 42%),radial-gradient(circle at 0% 55%,rgba(217,165,22,.18),transparent 38%),var(--bg);padding-bottom:90px;position:relative}
+.hd{position:sticky;top:0;z-index:5;background:linear-gradient(160deg,var(--g1),var(--g2));color:#fff;padding:16px;border-style:solid;border-width:0 0 4px;border-image:var(--gold) 1;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.hd h1{margin:0;font-size:20px;font-weight:700}.hd button{min-height:44px;padding:0 16px;background:rgba(255,255,255,.16);border:1.5px solid #e8c24a;color:#fff;border-radius:22px;font-weight:600}
+.hd .gear{width:44px;padding:0;display:flex;align-items:center;justify-content:center;flex:none}
+.hd-r{display:flex;align-items:center;gap:10px}
+.tr{text-align:right;font-weight:600}.tr small{display:block;font-size:12px}.tr b{font-size:20px;color:#ffe58a}
+main{padding:14px 16px}
+.mod{position:relative;overflow:hidden;display:flex;align-items:center;gap:14px;width:100%;height:68px;padding:8px 16px;margin-bottom:10px;border-radius:18px;border:2px solid transparent;background:linear-gradient(165deg,var(--g1),var(--g2)) padding-box,var(--gold) border-box;color:#fff;text-align:left}
+.mod::after{content:"";position:absolute;left:-30%;top:-60%;width:160%;height:100%;background:linear-gradient(180deg,rgba(255,255,255,.32),rgba(255,255,255,0));transform:rotate(-8deg);pointer-events:none}
+.ic{position:relative;z-index:1;flex:none;width:44px;height:44px;border-radius:50%;border:2px solid transparent;background:linear-gradient(#08865c,#08865c) padding-box,var(--gold) border-box;display:flex;align-items:center;justify-content:center}
+.mod span{position:relative;z-index:1}.mod b{font-size:18px;display:block}.mod small{font-size:13px;font-weight:600;color:#e6fff3}
+h2{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--bal);margin:16px 0 10px;padding-bottom:5px;border-style:solid;border-width:0 0 2px;border-image:var(--gold) 1}
+.ac{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 14px;margin-bottom:10px;border-radius:22px;border:1.5px solid rgba(15,168,116,.5);background:linear-gradient(135deg,var(--ga),var(--gb));-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 10px 22px rgba(6,107,74,.2),inset 0 1px 0 rgba(255,255,255,.8)}
+.av{flex:none;width:44px;height:44px;border-radius:50%;border:2px solid transparent;background:linear-gradient(145deg,var(--g1),var(--g2)) padding-box,var(--gold) border-box;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center}
+.ac .nm{flex:1}.ac small{display:block;color:var(--mut);font-size:13px}.amt{font-weight:700;font-size:17px;text-align:right}
+.iv{position:relative;overflow:hidden;display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 14px 12px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.iv::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--gold)}
+.ih{display:flex;align-items:center;gap:8px;margin-bottom:6px}.ih b{font-size:16px}.ih small{margin-left:auto;color:var(--mut);font-size:12px}
+.sl{display:flex;justify-content:space-between;font-size:13px;color:var(--mut)}
+.bl{display:flex;justify-content:space-between;align-items:baseline;margin-top:6px;padding-top:6px;border-top:1px dashed var(--line)}
+.bl span{font-size:13px;font-weight:700;color:var(--ink)}.bl strong{font-size:26px;line-height:1.1;color:var(--bal)}.bl .red{color:var(--red)}
+.tag{font-size:12px;font-weight:700;padding:2px 9px;border-radius:10px;border:1px solid #FCA5A5;background:#FEE2E2;color:#991B1B}
+.tag.o,.tag.u{background:#FEE2E2;color:#991B1B;border-color:#FCA5A5}
+.tag.p{background:#FEF9C3;color:#854D0E;border-color:#FDE047}
+.tag.d{background:#DCFCE7;color:#166534;border-color:#86EFAC}
+.btn{display:block;width:100%;min-height:50px;border-radius:14px;border:2px solid transparent;background:linear-gradient(var(--card),var(--card)) padding-box,var(--gold) border-box;color:var(--bal);font-weight:700;margin:8px 0}
+.btn.f{background:linear-gradient(160deg,var(--g1),var(--g2)) padding-box,var(--gold) border-box;color:#fff}
+.btn.danger{border:2px solid var(--red);background:var(--card);color:var(--red)}
+.btn.sm{width:auto;min-height:38px;padding:0 12px;font-size:13px;margin:0;border-radius:10px}
+.sum{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}.sum div{padding:10px 14px;border-radius:16px;border:1.5px solid rgba(15,168,116,.5);background:linear-gradient(135deg,var(--ga),var(--gb))}.sum small{display:block;color:var(--mut);font-size:13px}.sum b{font-size:19px}
+label{display:block;font-size:14px;font-weight:700;color:var(--ink);margin:0 0 12px}
+input,select{display:block;width:100%;min-height:48px;margin-top:5px;padding:0 12px;border:2px solid var(--g2);border-radius:12px;background:#fff;font-size:16px;font-weight:600;box-shadow:0 2px 6px rgba(6,107,74,.15)}input:focus,select:focus{outline:none;border-color:#d9a516;box-shadow:0 0 0 3px rgba(217,165,22,.35)}
+.row{display:flex;gap:8px;align-items:flex-end}.row>label{flex:1;margin:0}.row .btn{width:auto;padding:0 14px;margin:0;font-size:14px}
+#al{position:absolute;left:16px;right:16px;z-index:6;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 24px rgba(0,0,0,.2);display:none;overflow:hidden}
+#al button{display:block;width:100%;min-height:46px;text-align:left;padding:0 14px;border:0;border-bottom:1px solid var(--line);background:none}#al p{margin:0;padding:12px 14px;color:var(--mut);font-size:14px}
+.note{padding:10px 12px;border-radius:12px;background:linear-gradient(135deg,var(--ga),var(--gb));font-size:13px;margin:0 0 12px}
+.note.warn{border:1px solid #c8961a;background:rgba(251,234,160,.45)}
+.fab{position:fixed;right:18px;bottom:calc(22px + env(safe-area-inset-bottom,0px));min-height:56px;padding:0 22px;border-radius:28px;border:2px solid transparent;background:linear-gradient(160deg,var(--g1),var(--g2)) padding-box,var(--gold) border-box;color:#fff;font-weight:700;box-shadow:0 10px 22px rgba(6,80,58,.4);z-index:4}
+.ov{position:fixed;inset:0;z-index:10;background:var(--bg);overflow:auto}
+.modal-bg{position:fixed;inset:0;z-index:20;background:rgba(13,42,32,.48);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);display:flex;align-items:flex-end;justify-content:center;padding:16px 16px calc(20px + env(safe-area-inset-bottom,0px))}
+.modal-card{width:100%;max-width:410px;background:var(--bg);border-radius:22px;border:2px solid transparent;background:linear-gradient(var(--bg),var(--bg)) padding-box,var(--gold) border-box;padding:18px 16px 12px;box-shadow:0 16px 36px rgba(6,80,58,.35)}
+.modal-card h3{margin:0 0 12px;font-size:17px;color:var(--bal);text-align:center}
+.sh{width:100%;max-width:100%;margin:0;min-height:100%;background:radial-gradient(circle at 92% 6%,rgba(40,210,150,.3),transparent 40%),var(--bg);padding:0 16px calc(24px + env(safe-area-inset-bottom,0px))}
+.sh .hd{margin:0 -16px 14px}
+.ph{height:230px;border-radius:12px;background:#e9ecea;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;margin-bottom:12px;overflow:hidden;position:relative}
+.ph.zoomable{cursor:zoom-in}
+.ph-hint{position:absolute;right:8px;bottom:8px;background:rgba(13,42,32,.72);color:#fff;font-size:11px;font-weight:600;padding:3px 9px;border-radius:10px;pointer-events:none}
+.zoom-ov{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.94);display:flex;flex-direction:column}
+.zoom-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;color:#fff;gap:8px;flex:none}
+.zoom-bar button{min-height:40px;padding:0 14px;border-radius:12px;border:1.5px solid #e8c24a;background:rgba(255,255,255,.14);color:#fff;font-weight:700;font-size:14px}
+.zoom-stage{flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;touch-action:none;position:relative}
+.zoom-stage img{max-width:100%;max-height:100%;object-fit:contain;transform-origin:center center;will-change:transform;user-select:none;-webkit-user-drag:none}
+.ph img{width:100%;height:100%;object-fit:contain}
+.pp{width:46%;height:92%;background:#fff;transform:rotate(-3deg);box-shadow:0 4px 12px rgba(0,0,0,.25);padding:8px;color:#333;font-size:9px}.pp i{display:block;height:4px;background:#c9cfcc;margin:5px 0}.pp u{display:block;text-align:right;font-weight:700;margin-top:8px}
+.dl{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;font-size:15px;border-bottom:1px solid var(--line)}.dl.s{font-size:13px;color:var(--mut)}
+.rm-btn{min-height:36px;padding:0 10px;border:1px solid var(--red);border-radius:8px;background:none;color:var(--red);font-size:12px;font-weight:600}
+.empty{text-align:center;color:var(--mut);padding:22px 0}
+.st{position:relative;overflow:hidden;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.1);padding:16px 6px 8px;margin-top:4px}.st::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:var(--gold)}
+.st h3{margin:0;text-align:center;font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:var(--bal)}.st .sub{text-align:center;font-size:13px;color:var(--mut);margin:2px 0 10px}
+.soa-tbl{table-layout:fixed;width:100%;border-collapse:collapse;font-size:11px}
+.soa-tbl thead th{background:linear-gradient(160deg,var(--g1),var(--g2));color:#fff;font-weight:700;padding:8px 3px;text-align:left;font-size:11px}
+.soa-tbl thead th.n,.soa-tbl td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.soa-tbl tbody tr.soa-row{cursor:pointer;border-bottom:1px solid #d5e6dd}
+.soa-tbl tbody tr.soa-row:nth-child(odd){background:#fff}
+.soa-tbl tbody tr.soa-row:nth-child(even){background:#f6fbf8}
+.soa-tbl tbody tr.soa-row:active{background:#dff4ea}
+.soa-tbl td{padding:8px 3px;vertical-align:middle}
+.soa-tbl td.det{overflow-wrap:anywhere}
+.soa-tbl td b{font-size:12px;display:block}
+.soa-tbl td small{display:block;color:var(--mut);font-size:11px}
+.soa-tbl td.g{color:var(--bal);font-weight:700}
+.soa-tbl td.bb{font-weight:700;font-size:11.5px}
+.soa-tbl td.chev{text-align:right;color:var(--mut);font-weight:700;font-size:14px;padding:8px 2px 8px 0}
+.soa-tbl tfoot td{font-weight:700;font-size:11.5px;border-top:2px solid var(--g2);padding:9px 3px 4px;background:#fff}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:20px;font-size:14px;display:none;z-index:30}
+</style>
+</head>
+<body>
+<div id="app"><p class="empty">Loading...</p></div>
+<div id="toast" role="status"></div>
+<script>
+const DB_NAME = 'invoice_tracker_db';
+const DB_VER = 1;
+const DEFAULT_MODEL = 'qwen/qwen3.8-27b';
+let db = null;
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VER);
+    req.onupgradeneeded = e => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('accounts')) {
+        const s = d.createObjectStore('accounts', { keyPath: 'id', autoIncrement: true });
+        s.createIndex('name', 'name', { unique: false });
+      }
+      if (!d.objectStoreNames.contains('invoices')) {
+        const s = d.createObjectStore('invoices', { keyPath: 'id', autoIncrement: true });
+        s.createIndex('accountId', 'accountId', { unique: false });
+        s.createIndex('dueDate', 'dueDate', { unique: false });
+        s.createIndex('invoiceDate', 'invoiceDate', { unique: false });
+      }
+      if (!d.objectStoreNames.contains('settings')) {
+        d.createObjectStore('settings', { keyPath: 'key' });
+      }
+    };
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror = e => reject(e.target.error);
+  });
+}
+
+function dbGetAll(store) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readonly');
+    const req = tx.objectStore(store).getAll();
+    req.onsuccess = () => resolve(req.result || []);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function dbGet(store, key) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readonly');
+    const req = tx.objectStore(store).get(key);
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function dbAdd(store, obj) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readwrite');
+    const req = tx.objectStore(store).add(obj);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function dbPut(store, obj) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readwrite');
+    const req = tx.objectStore(store).put(obj);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function dbDelete(store, key) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readwrite');
+    const req = tx.objectStore(store).delete(key);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function loadInvoiceSummaries() {
+  return new Promise((resolve, reject) => {
+    const list = [];
+    const tx = db.transaction('invoices', 'readonly');
+    const req = tx.objectStore('invoices').openCursor();
+    req.onsuccess = e => {
+      const cur = e.target.result;
+      if (!cur) return resolve(list);
+      const v = cur.value;
+      list.push({
+        id: v.id,
+        accountId: v.accountId,
+        number: v.number,
+        invoiceDate: v.invoiceDate,
+        dueDate: v.dueDate,
+        amountSen: v.amountSen,
+        payments: Array.isArray(v.payments) ? v.payments : [],
+        hasPhoto: !!v.photoDataUrl,
+        createdAt: v.createdAt || ''
+      });
+      cur.continue();
+    };
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function loadSettings() {
+  const rows = await dbGetAll('settings');
+  const map = { groqApiKey: '', groqModel: DEFAULT_MODEL, lastBackupAt: '', weeklyReminderDismissedAt: '' };
+  rows.forEach(r => { if (r && r.key) map[r.key] = r.value; });
+  if (!map.groqModel) map.groqModel = DEFAULT_MODEL;
+  return map;
+}
+
+async function saveSetting(key, value) {
+  CFG[key] = value;
+  await dbPut('settings', { key, value });
+}
+
+// Live local date helpers
+const todayDate = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
+const fd = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+const off = o => { const d = todayDate(); d.setDate(d.getDate() + o); return fd(d); };
+const MO = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const show = s => { const [y, m, d] = s.split('-'); return +d + ' ' + MO[m - 1] + ' ' + y; };
+const sd = s => { const [y, m, d] = s.split('-'); return +d + ' ' + MO[m - 1] + ' ' + y.slice(2); };
+const days = s => Math.round((new Date(s + 'T00:00') - todayDate()) / 864e5);
+const isValidDateStr = s => /^\d{4}-\d{2}-\d{2}$/.test(s) && !isNaN(new Date(s + 'T00:00').getTime());
+
+// Integer sen math helpers
+const toSen = v => {
+  const s = String(v ?? '').trim();
+  if (!s) return NaN;
+  const n = Number(s);
+  if (!Number.isFinite(n)) return NaN;
+  return Math.round(n * 100);
+};
+const rm = sen => 'RM ' + (sen / 100).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const nFmt = sen => (sen / 100).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const $ = s => document.querySelector(s);
+
+// App state
+let A = [];
+let I = [];
+let CFG = { groqApiKey: '', groqModel: DEFAULT_MODEL, lastBackupAt: '', weeklyReminderDismissedAt: '' };
+let S = {
+  v: 'home', acc: null, q: '', exp: {},
+  sheet: null, sheetPhoto: null,
+  zoomOpen: false, zoomScale: 1, zoomX: 0, zoomY: 0,
+  editInv: false, confirmDelInv: null, confirmDelPay: null,
+  editAcc: false, confirmDelAcc: false,
+  showKey: false, setDraft: null, verifying: false, groqModels: [],
+  photoPrompt: null, scanning: false,
+  add: false, d: {}
+};
+
+const paidSen = i => i.payments.reduce((t, p) => t + p.amountSen, 0);
+const balSen = i => Math.max(0, i.amountSen - paidSen(i));
+const st = i => balSen(i) <= 0 ? 'd' : days(i.dueDate) < 0 ? 'o' : paidSen(i) > 0 ? 'p' : 'u';
+const TAG = { d: 'Paid', o: 'Overdue', p: 'Partly paid', u: 'Unpaid' };
+const mine = aId => I.filter(i => i.accountId === aId);
+const open = aId => mine(aId).filter(i => balSen(i) > 0);
+const dueSen = aId => open(aId).reduce((t, i) => t + balSen(i), 0);
+const acc = id => A.find(a => a.id === id);
+
+const toast = t => {
+  const e = $('#toast');
+  e.textContent = t;
+  e.style.display = 'block';
+  clearTimeout(toast.t);
+  toast.t = setTimeout(() => { e.style.display = 'none'; }, 2400);
+};
+
+const ini = n => (n || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+const dueTxt = i => {
+  const d = days(i.dueDate);
+  if (balSen(i) <= 0) return 'Paid in full';
+  if (d < 0) return (-d) + (d === -1 ? ' day' : ' days') + ' overdue';
+  if (d === 0) return 'Due today';
+  if (d === 1) return 'Due in 1 day';
+  return 'Due in ' + d + ' days';
+};
+
+const accCard = (a, act) => {
+  const cnt = open(a.id).length;
+  return `<button class="ac" data-a="${act}" data-id="${a.id}"><span class="av">${esc(ini(a.name))}</span><span class="nm"><b>${esc(a.name)}</b><small>${cnt} open invoice${cnt === 1 ? '' : 's'}</small></span><span class="amt">${rm(dueSen(a.id))}</span></button>`;
+};
+
+const invCard = i => {
+  const s = st(i);
+  return `<button class="iv" data-a="sheet" data-id="${i.id}"><div class="ih"><b>${esc(i.number)}</b><span class="tag ${s}">${TAG[s]}</span><small>${dueTxt(i)}</small></div>
+<div class="sl"><span>Invoice value</span><span>${rm(i.amountSen)}</span></div><div class="sl"><span>Paid so far</span><span>${rm(paidSen(i))}</span></div>
+<div class="bl"><span>Balance</span><strong class="${s === 'o' ? 'red' : ''}">${rm(balSen(i))}</strong></div></button>`;
+};
+
+const IC = {
+  tray: '<path d="M4 13l3-8h10l3 8v6H4zM4 13h5l1 2h4l1-2h5"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  ppl: '<circle cx="9" cy="9" r="3"/><path d="M3 20c0-4 3-6 6-6s6 2 6 6M16 6a3 3 0 010 6M18 14c2 1 3 3 3 6"/>',
+  gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9c.26.6.85 1 1.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>'
+};
+const mod = (v, ic, t, s) => `<button class="mod" data-a="go" data-v="${v}"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f3d36b" stroke-width="2" aria-hidden="true">${IC[ic]}</svg></span><span><b>${t}</b><small>${s}</small></span></button>`;
+const bar = (t, r) => `<div class="hd"><h1>${t}</h1>${r}</div>`;
+const back = (v, l) => `<button data-a="go" data-v="${v}">${l}</button>`;
+const addForm = () => `<div class="ac" style="display:block;border-radius:18px"><label>Account name<input id="an" autocomplete="off"></label><label>Phone (optional)<input id="ap" inputmode="tel" autocomplete="off"></label><button class="btn f" data-a="saveacc">Save account</button></div>`;
+
+function shouldShowBackupReminder() {
+  if (A.length === 0 && I.length === 0) return false;
+  const now = Date.now();
+  const weekMs = 7 * 864e5;
+  if (CFG.weeklyReminderDismissedAt && (now - new Date(CFG.weeklyReminderDismissedAt).getTime()) < weekMs) return false;
+  if (CFG.lastBackupAt) return (now - new Date(CFG.lastBackupAt).getTime()) >= weekMs;
+  const oldestInv = I.reduce((min, i) => (i.createdAt && (!min || i.createdAt < min)) ? i.createdAt : min, '');
+  if (!oldestInv) return false;
+  return (now - new Date(oldestInv).getTime()) >= weekMs;
+}
+
+function home() {
+  const tot = I.reduce((t, i) => t + balSen(i), 0);
+  const l = A.filter(a => dueSen(a.id) > 0).sort((x, y) => dueSen(y.id) - dueSen(x.id));
+  const emptyMsg = (A.length === 0 && I.length === 0)
+    ? '<p class="note">Welcome! Tap <b>New Entry</b> to record your first invoice, or tap the gear icon above to add your Groq API key for photo scanning.</p>'
+    : '<p class="empty">All caught up — no open dues.</p>';
+  const remBanner = shouldShowBackupReminder()
+    ? `<div class="note warn"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span>It's been a week since your last backup. Save a backup file in Settings to keep your data safe.</span><button class="btn sm" data-a="dismissrem">Dismiss</button></div></div>`
+    : '';
+  const rightHdr = `<div class="hd-r"><div class="tr"><small>To receive</small><b>${rm(tot)}</b></div><button class="gear" data-a="go" data-v="settings" aria-label="Settings"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffe58a" stroke-width="2" aria-hidden="true">${IC.gear}</svg></button></div>`;
+  return bar('Invoice Tracker', rightHdr) +
+    `<main>${remBanner}${mod('new', 'plus', 'New Entry', 'Add an invoice')}${mod('received', 'tray', 'Received', 'Mark payments')}${mod('accounts', 'ppl', 'Accounts', 'Statements and accounts')}<h2>Highest dues</h2>${l.length ? l.map(a => accCard(a, 'acct')).join('') : emptyMsg}</main>`;
+}
+
+const recList = () => {
+  const allOpen = A.filter(a => open(a.id).length > 0);
+  if (!allOpen.length) return '<p class="empty">No unpaid invoices right now.</p>';
+  const q = (S.q || '').toLowerCase();
+  const l = allOpen.filter(a => a.name.toLowerCase().includes(q)).sort((x, y) => dueSen(y.id) - dueSen(x.id));
+  return l.map(a => accCard(a, 'exp') + (S.exp[a.id] ? `<div style="margin:-2px 0 6px 14px">${open(a.id).sort((x, y) => x.dueDate < y.dueDate ? -1 : x.dueDate > y.dueDate ? 1 : 0).map(invCard).join('')}</div>` : '')).join('') || '<p class="empty">No matching accounts.</p>';
+};
+
+function received() {
+  return bar('Received', back('home', 'Home')) +
+    `<main><label>Search accounts<input id="rq" autocomplete="off" placeholder="Type an account name" value="${esc(S.q || '')}"></label><div id="rl">${recList()}</div></main>`;
+}
+
+function accounts() {
+  const sorted = A.slice().sort((x, y) => x.name.localeCompare(y.name));
+  return bar('Accounts', back('home', 'Home')) +
+    `<main><button class="btn f" data-a="toggleadd" style="margin-top:0">+ Add account</button>${S.add ? addForm() : ''}<h2>Tap an account for its statement</h2>${sorted.length ? sorted.map(a => accCard(a, 'acct')).join('') : '<p class="empty">No accounts yet. Tap + Add account above.</p>'}</main>`;
+}
+
+function stmt() {
+  const a = acc(S.acc);
+  if (!a) return home();
+  const all = mine(a.id);
+  const tot = all.reduce((t, i) => t + i.amountSen, 0);
+  const pd = all.reduce((t, i) => t + paidSen(i), 0);
+  const ev = [];
+  all.forEach(i => {
+    ev.push({ d: i.invoiceDate, k: 0, i });
+    i.payments.forEach(p => ev.push({ d: p.date, k: 1, i, a: p.amountSen }));
+  });
+  ev.sort((x, y) => x.d < y.d ? -1 : x.d > y.d ? 1 : x.k - y.k);
+  let run = 0;
+  const rows = ev.map(e => {
+    run += e.k ? -e.a : e.i.amountSen;
+    return e.k
+      ? `<tr class="soa-row" data-a="sheet" data-id="${e.i.id}"><td>${sd(e.d)}</td><td class="det"><b>Payment</b><small>for ${esc(e.i.number)}</small></td><td class="n"></td><td class="n g">${nFmt(e.a)}</td><td class="n bb">${nFmt(run)}</td><td class="chev">&rsaquo;</td></tr>`
+      : `<tr class="soa-row" data-a="sheet" data-id="${e.i.id}"><td>${sd(e.d)}</td><td class="det"><b>${esc(e.i.number)}</b><small>Due ${sd(e.i.dueDate)}</small></td><td class="n">${nFmt(e.i.amountSen)}</td><td class="n"></td><td class="n bb">${nFmt(run)}</td><td class="chev">&rsaquo;</td></tr>`;
+  }).join('');
+
+  let accInfoHtml = `<div style="display:flex;justify-content:space-between;align-items:center;margin:0 0 10px;gap:8px"><span style="color:var(--mut)">${a.phone ? esc(a.phone) : 'No phone number'}</span><button class="btn sm" data-a="editacc">Edit account</button></div>`;
+  if (S.editAcc) {
+    const canDel = all.length === 0;
+    const delBlock = canDel
+      ? (S.confirmDelAcc
+        ? `<div class="row" style="margin-top:8px"><button class="btn danger" data-a="confirmdelacc">Confirm delete</button><button class="btn" data-a="canceldelacc">Cancel</button></div>`
+        : `<button class="btn danger" data-a="delacc">Delete account</button>`)
+      : `<p class="note" style="margin-top:8px;margin-bottom:0">Accounts with invoices cannot be deleted.</p>`;
+    accInfoHtml = `<div class="ac" style="display:block;border-radius:18px;margin-bottom:12px">
+      <label>Account name<input id="ea-name" autocomplete="off" value="${esc(a.name)}"></label>
+      <label>Phone (optional)<input id="ea-phone" inputmode="tel" autocomplete="off" value="${esc(a.phone || '')}"></label>
+      <div class="row"><button class="btn f" data-a="saveeditacc" style="flex:1">Save</button><button class="btn" data-a="canceleditacc">Cancel</button></div>
+      ${delBlock}
+    </div>`;
+  }
+
+  return bar(esc(a.name), back('accounts', 'Back')) +
+    `<main>${accInfoHtml}<div class="sum"><div><small>Total invoiced</small><b>${rm(tot)}</b></div><div><small>Still owing</small><b>${rm(tot - pd)}</b></div></div>
+<div class="st"><h3>Statement of account</h3><div class="sub">${esc(a.name)} · as at ${show(off(0))}</div>
+<table class="soa-tbl"><colgroup><col style="width:16%"><col style="width:26%"><col style="width:18%"><col style="width:18%"><col style="width:19%"><col style="width:3%"></colgroup>
+<thead><tr><th>Date</th><th>Details</th><th class="n">Invoice</th><th class="n">Received</th><th class="n">Balance</th><th></th></tr></thead>
+<tbody>${rows || '<tr><td colspan="6" class="empty">No invoices yet.</td></tr>'}</tbody>
+<tfoot><tr><td></td><td>Totals (RM)</td><td class="n">${nFmt(tot)}</td><td class="n g">${nFmt(pd)}</td><td class="n bb">${nFmt(tot - pd)}</td><td></td></tr></tfoot>
+</table></div></main><button class="fab" data-a="newfor">+ New invoice</button>`;
+}
+
+function newEntry() {
+  const d = S.d, a = d.acc ? acc(d.acc) : null;
+  return bar('New Entry', back('home', 'Home')) +
+    `<main><div class="row"><label>Account (type to search)<input id="as" autocomplete="off" placeholder="Start typing a name" value="${esc(a ? a.name : '')}"></label><button class="btn f" data-a="toggleadd2">+ New account</button></div><div id="al"></div>${S.add ? '<div style="height:10px"></div>' + addForm() : ''}
+<button class="btn" type="button" data-a="scan" style="margin-top:14px"${S.scanning ? ' disabled' : ''}>${S.scanning ? 'Reading invoice...' : 'Scan invoice photo (auto-fill)'}</button><input type="file" accept="image/*" id="ph" style="display:none">
+${d.img ? `<div class="ph"><img alt="Invoice photo" src="${d.img}"></div>` : ''}
+${d.scanNote ? `<p class="note">${esc(d.scanNote)}</p>` : ''}
+<label>Invoice number<input id="ni" autocomplete="off" value="${esc(d.no || '')}"></label><label>Invoice date<input type="date" id="nd" value="${d.iss || off(0)}"></label><label>Due date<input type="date" id="nu" value="${d.due || off(30)}"></label>
+<label>Amount (RM)<input type="number" step="0.01" inputmode="decimal" id="nm" value="${esc(d.amt || '')}"></label><button class="btn f" data-a="saveinv"${S.scanning ? ' disabled' : ''}>Save invoice</button></main>`;
+}
+
+function settings() {
+  const lastBkp = CFG.lastBackupAt ? show(fd(new Date(CFG.lastBackupAt))) : 'Never';
+  const draft = S.setDraft || { apiKey: CFG.groqApiKey || '', model: CFG.groqModel || DEFAULT_MODEL, customMode: false, verifyMsg: '', verifyOk: null };
+  const curModel = draft.model || DEFAULT_MODEL;
+  const baseOpts = S.groqModels.length ? S.groqModels : [curModel];
+  const isCustom = !!(draft.customMode || (S.groqModels.length > 0 && !baseOpts.includes(curModel)));
+  const optsHtml = baseOpts.map(m => `<option value="${esc(m)}"${!isCustom && m === curModel ? ' selected' : ''}>${esc(m)}</option>`).join('') +
+    `<option value="__custom__"${isCustom ? ' selected' : ''}>Custom model ID...</option>`;
+  const vNote = draft.verifyMsg
+    ? `<p class="note${draft.verifyOk === false ? ' warn' : ''}" style="margin-top:8px;margin-bottom:8px">${esc(draft.verifyMsg)}</p>`
+    : '';
+  return bar('Settings', back('home', 'Home')) +
+    `<main>
+      <h2>Groq OCR</h2>
+      <div class="ac" style="display:block;border-radius:18px">
+        <div class="row" style="margin-bottom:10px">
+          <label>Groq API key<input id="sk" type="${S.showKey ? 'text' : 'password'}" autocomplete="off" placeholder="gsk_..." value="${esc(draft.apiKey)}"></label>
+          <button class="btn" type="button" data-a="togglekey">${S.showKey ? 'Hide' : 'Show'}</button>
+        </div>
+        <button class="btn" type="button" data-a="verifykey"${S.verifying ? ' disabled' : ''}>${S.verifying ? 'Verifying & loading models...' : 'Verify Key & Load Models'}</button>
+        ${vNote}
+        <label style="margin-top:10px">Model<select id="sm-sel">${optsHtml}</select></label>
+        ${isCustom ? `<label>Custom model ID<input id="sm-custom" autocomplete="off" placeholder="qwen/qwen3.8-27b" value="${esc(curModel)}"></label>` : ''}
+        <button class="btn f" data-a="saveset">Save OCR settings</button>
+      </div>
+      <h2>Data &amp; Backup</h2>
+      <button class="btn" data-a="exportcsv">Export to Excel (CSV)</button>
+      <button class="btn f" data-a="backup">Save backup file</button>
+      <p style="margin:2px 0 10px;font-size:13px;color:var(--mut);text-align:center">Last backup: ${esc(lastBkp)}</p>
+      <button class="btn" data-a="restorebtn">Restore backup</button>
+      <input type="file" accept="*/*" id="rf" style="display:none">
+    </main>`;
+}
+
+function sheet() {
+  const i = I.find(x => x.id === S.sheet);
+  if (!i) return '';
+  const b = balSen(i), s = st(i), a = acc(i.accountId);
+  const photoHtml = S.sheetPhoto
+    ? `<img alt="Invoice photo" src="${S.sheetPhoto}">`
+    : `<div class="pp"><b>INVOICE ${esc(i.number)}</b><i></i><i></i><i></i><i></i><u>${rm(i.amountSen)}</u></div>`;
+
+  if (S.editInv) {
+    return `<div class="ov" data-a="closesheet"><div class="sh"><div class="hd"><h1>Edit Invoice</h1><button data-a="canceleditinv">Cancel</button></div>
+<div class="ph">${photoHtml}</div>
+<div class="row" style="margin-bottom:12px"><button class="btn" type="button" data-a="rephoto" style="flex:1">Replace photo</button>${S.sheetPhoto ? '<button class="btn danger" type="button" data-a="rmphoto">Remove photo</button>' : ''}</div>
+<input type="file" accept="image/*" id="eph" style="display:none">
+<label>Invoice number<input id="ei-no" autocomplete="off" value="${esc(i.number)}"></label>
+<label>Invoice date<input type="date" id="ei-iss" value="${esc(i.invoiceDate)}"></label>
+<label>Due date<input type="date" id="ei-due" value="${esc(i.dueDate)}"></label>
+<label>Amount (RM)<input type="number" step="0.01" inputmode="decimal" id="ei-amt" value="${(i.amountSen / 100).toFixed(2)}"></label>
+<button class="btn f" data-a="saveeditinv" data-id="${i.id}">Save changes</button>
+<button class="btn" data-a="canceleditinv">Cancel</button></div></div>`;
+  }
+
+  const payRows = i.payments.map(p => {
+    const isConf = S.confirmDelPay === p.id;
+    const rmCtrl = isConf
+      ? `<button class="rm-btn" data-a="confirmdelpay" data-id="${i.id}" data-pid="${esc(p.id)}">Confirm</button><button class="btn sm" data-a="canceldelpay">Cancel</button>`
+      : `<button class="rm-btn" data-a="delpay" data-pid="${esc(p.id)}">Remove</button>`;
+    return `<div class="dl s"><span>Received ${show(p.date)}</span><span style="margin-left:auto">${rm(p.amountSen)}</span>${rmCtrl}</div>`;
+  }).join('');
+
+  const delInvCtrl = S.confirmDelInv === i.id
+    ? `<div class="row" style="margin-top:8px"><button class="btn danger" data-a="confirmdelinv" data-id="${i.id}" style="flex:1">Confirm delete</button><button class="btn" data-a="canceldelinv">Cancel</button></div>`
+    : `<div class="row" style="margin-top:8px"><button class="btn" data-a="editinv" style="flex:1">Edit invoice</button><button class="btn danger" data-a="delinv" data-id="${i.id}">Delete</button></div>`;
+
+  return `<div class="ov" data-a="closesheet"><div class="sh"><div class="hd"><h1>Invoice</h1><button data-a="closesheet">Back</button></div>
+<div class="ph${S.sheetPhoto ? ' zoomable' : ''}"${S.sheetPhoto ? ' data-a="openzoom"' : ''}>${photoHtml}${S.sheetPhoto ? '<span class="ph-hint">Tap to zoom</span>' : ''}</div>
+<div style="display:flex;align-items:center;gap:8px"><b style="font-size:21px">${esc(i.number)}</b><span class="tag ${s}">${TAG[s]}</span></div><div style="color:var(--mut);margin-bottom:8px">${esc(a ? a.name : '')}</div>
+<div class="dl"><span>Invoice date</span><span>${show(i.invoiceDate)}</span></div><div class="dl"><span>Due date</span><span>${show(i.dueDate)}</span></div>
+<div class="dl"><span>Invoice value</span><span>${rm(i.amountSen)}</span></div>${payRows}
+<div class="bl" style="border:0"><span>Balance</span><strong class="${s === 'o' ? 'red' : ''}">${rm(b)}</strong></div>
+${b > 0 ? `<button class="btn f" data-a="payfull" data-id="${i.id}">Fully paid &nbsp;${rm(b)}</button><div class="row" style="margin-top:6px"><label>Partial payment (RM)<input id="pa" type="number" step="0.01" inputmode="decimal"></label><button class="btn" data-a="paypart" data-id="${i.id}">Record</button></div>` : '<p class="note">This invoice is fully paid.</p>'}
+${delInvCtrl}
+<button class="btn" data-a="closesheet">Close</button></div></div>`;
+}
+
+function photoPromptModal() {
+  if (!S.photoPrompt) return '';
+  return `<div class="modal-bg" data-a="closeprompt"><div class="modal-card"><h3>Select invoice photo</h3><button class="btn f" type="button" data-a="pickcam">Take Photo (Camera)</button><button class="btn" type="button" data-a="pickgal">Choose from Gallery</button><button class="btn" type="button" data-a="closeprompt">Cancel</button></div></div>`;
+}
+
+function zoomModal() {
+  if (!S.zoomOpen || !S.sheetPhoto) return '';
+  const pct = Math.round(S.zoomScale * 100);
+  return `<div class="zoom-ov"><div class="zoom-bar"><div style="display:flex;gap:6px;align-items:center"><button type="button" data-a="zoomout">-</button><button type="button" data-a="zoomreset">${pct}%</button><button type="button" data-a="zoomin">+</button></div><button type="button" data-a="closezoom">Close &#10005;</button></div><div class="zoom-stage" id="zstage"><img id="zimg" alt="Invoice photo zoom" src="${S.sheetPhoto}" style="transform:translate(${S.zoomX}px,${S.zoomY}px) scale(${S.zoomScale})"></div></div>`;
+}
+
+const VIEWS = { home, received, accounts, acct: stmt, new: newEntry, settings };
+const render = () => { $('#app').innerHTML = VIEWS[S.v]() + sheet() + photoPromptModal() + zoomModal(); };
+const go = (v, a) => {
+  S.v = v; S.q = '';
+  if (a !== undefined) S.acc = a;
+  S.add = false; S.sheet = null; S.sheetPhoto = null;
+  S.zoomOpen = false; S.zoomScale = 1; S.zoomX = 0; S.zoomY = 0;
+  S.editInv = false; S.confirmDelInv = null; S.confirmDelPay = null;
+  S.editAcc = false; S.confirmDelAcc = false;
+  S.setDraft = null; S.verifying = false; S.photoPrompt = null;
+  scrollTo(0, 0);
+  render();
+  if (v === 'settings' && CFG.groqApiKey) {
+    loadGroqModelsForSettings(CFG.groqApiKey);
+  }
+};
+const grabSettings = () => {
+  if ($('#sk')) {
+    const sel = $('#sm-sel');
+    const custom = $('#sm-custom');
+    const model = custom
+      ? custom.value
+      : (sel && sel.value !== '__custom__' ? sel.value : (S.setDraft?.model || CFG.groqModel || DEFAULT_MODEL));
+    S.setDraft = {
+      ...(S.setDraft || {}),
+      apiKey: $('#sk').value,
+      model,
+      customMode: sel ? sel.value === '__custom__' : !!(S.setDraft && S.setDraft.customMode)
+    };
+  }
+};
+const grab = () => { if ($('#ni')) S.d = { ...S.d, no: $('#ni').value, iss: $('#nd').value, due: $('#nu').value, amt: $('#nm').value }; };
+
+async function openSheet(id) {
+  S.sheet = id;
+  S.sheetPhoto = null;
+  S.editInv = false;
+  S.confirmDelInv = null;
+  S.confirmDelPay = null;
+  render();
+  const full = await dbGet('invoices', id);
+  if (S.sheet === id && full && full.photoDataUrl) {
+    S.sheetPhoto = full.photoDataUrl;
+    render();
+  }
+}
+
+function compressImageSource(src, maxSide = 1400, quality = 0.75, revoke = false) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      if (revoke) URL.revokeObjectURL(src);
+      let w = img.naturalWidth || img.width;
+      let h = img.naturalHeight || img.height;
+      const maxDim = Math.max(w, h);
+      if (maxDim > maxSide) {
+        const scale = maxSide / maxDim;
+        w = Math.round(w * scale);
+        h = Math.round(h * scale);
+      }
+      const c = document.createElement('canvas');
+      c.width = w;
+      c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(c.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = () => { if (revoke) URL.revokeObjectURL(src); reject(new Error('Invalid image')); };
+    img.src = src;
+  });
+}
+
+function compressImageFile(file, maxSide = 1400, quality = 0.80) {
+  return compressImageSource(URL.createObjectURL(file), maxSide, quality, true);
+}
+
+async function runGroqOCR(ocrDataUrl) {
+  const apiKey = (CFG.groqApiKey || '').trim();
+  const model = (CFG.groqModel || DEFAULT_MODEL).trim() || DEFAULT_MODEL;
+
+  if (!apiKey) {
+    S.d.scanNote = 'No Groq API key set. Photo saved — add your key in Settings or enter details manually.';
+    return;
+  }
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    S.d.scanNote = 'No internet connection. Photo saved — please enter the details manually.';
+    return;
+  }
+
+  const base64Data = ocrDataUrl.split(',')[1] || '';
+  const url = 'https://api.groq.com/openai/v1/chat/completions';
+  const promptText = 'Extract invoice_no, invoice_date (YYYY-MM-DD), due_date (YYYY-MM-DD), and amount (number only). Never extract account/supplier name. Return valid JSON only.';
+
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 15000);
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + apiKey
+      },
+      body: JSON.stringify({
+        model,
+        temperature: 0.1,
+        response_format: { type: 'json_object' },
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'text', text: promptText },
+            { type: 'image_url', image_url: { url: 'data:image/jpeg;base64,' + base64Data } }
+          ]
+        }]
+      }),
+      signal: ctrl.signal
+    });
+
+    if (!res.ok) {
+      if (res.status === 401 || res.status === 403) {
+        S.d.scanNote = 'Invalid Groq API key. Photo saved — check Settings or enter details manually.';
+      } else if (res.status === 429) {
+        S.d.scanNote = 'Groq rate limit reached. Photo saved — enter details manually.';
+      } else {
+        S.d.scanNote = `Scan failed (HTTP ${res.status}). Photo saved — enter details manually.`;
+      }
+      return;
+    }
+
+    const body = await res.json();
+    let txt = body?.choices?.[0]?.message?.content || '';
+    txt = txt.replace(/^```json\s*/i, '').replace(/```$/i, '').trim();
+    const parsed = JSON.parse(txt);
+
+    // Safe field auto-fill: NEVER touch S.d.acc; only populate non-null/non-empty fields
+    if (parsed.invoice_no !== null && parsed.invoice_no !== undefined && String(parsed.invoice_no).trim()) {
+      S.d.no = String(parsed.invoice_no).trim();
+    }
+    if (parsed.invoice_date !== null && parsed.invoice_date !== undefined && isValidDateStr(String(parsed.invoice_date).trim())) {
+      S.d.iss = String(parsed.invoice_date).trim();
+    }
+    if (parsed.due_date !== null && parsed.due_date !== undefined && isValidDateStr(String(parsed.due_date).trim())) {
+      S.d.due = String(parsed.due_date).trim();
+    }
+    if (parsed.amount !== null && parsed.amount !== undefined && String(parsed.amount).trim() !== '') {
+      const cleanAmount = String(parsed.amount).replace(/,/g, '').replace(/[^0-9.\-]/g, '');
+      const parsedNum = parseFloat(cleanAmount);
+      const sen = Number.isFinite(parsedNum) ? Math.round(parsedNum * 100) : NaN;
+      if (Number.isFinite(sen) && sen > 0) {
+        S.d.amt = (sen / 100).toFixed(2);
+      }
+    }
+    S.d.scanNote = 'Invoice number, dates and amount were filled from the photo. Please check them. The account is never read from the photo, so choose it above.';
+  } catch (err) {
+    if (err && err.name === 'AbortError') {
+      S.d.scanNote = 'Scan timed out. Photo saved — please enter the details manually.';
+    } else {
+      S.d.scanNote = 'Could not read the invoice automatically. Photo saved — enter details manually.';
+    }
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function processScannedImage(viewDataUrl, ocrDataUrl) {
+  S.d = {
+    ...S.d,
+    img: viewDataUrl,
+    iss: S.d.iss || off(0),
+    due: S.d.due || off(30),
+    scanNote: 'Reading invoice details...'
+  };
+  S.scanning = true;
+  render();
+  await runGroqOCR(ocrDataUrl || viewDataUrl);
+  S.scanning = false;
+  render();
+}
+
+async function fetchGroqModels(apiKey) {
+  const key = (apiKey || '').trim();
+  if (!key) return { ok: false, msg: 'Enter your Groq API key first.', models: [] };
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    return { ok: false, msg: 'No internet connection.', models: [] };
+  }
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 15000);
+  try {
+    const res = await fetch('https://api.groq.com/openai/v1/models', {
+      method: 'GET',
+      headers: { 'Authorization': 'Bearer ' + key },
+      signal: ctrl.signal
+    });
+    if (!res.ok) {
+      if (res.status === 401 || res.status === 403) {
+        return { ok: false, msg: 'Invalid Groq API key', models: [] };
+      }
+      return { ok: false, msg: `Connection failed (HTTP ${res.status})`, models: [] };
+    }
+    const body = await res.json();
+    const raw = Array.isArray(body.data) ? body.data.map(m => m && m.id).filter(Boolean) : [];
+    const excludeRe = /whisper|orpheus|prompt-guard|safeguard/i;
+    const visionRe = /qwen|vision|vl|muse/i;
+    const filtered = raw.filter(id => !excludeRe.test(id));
+    filtered.sort((a, b) => {
+      const av = visionRe.test(a) ? 0 : 1;
+      const bv = visionRe.test(b) ? 0 : 1;
+      if (av !== bv) return av - bv;
+      if (a === DEFAULT_MODEL) return -1;
+      if (b === DEFAULT_MODEL) return 1;
+      return a.localeCompare(b);
+    });
+    return { ok: true, msg: `Connected — ${filtered.length} models loaded`, models: filtered };
+  } catch (err) {
+    if (err && err.name === 'AbortError') return { ok: false, msg: 'Connection timed out after 15s.', models: [] };
+    return { ok: false, msg: 'Network error: could not reach Groq API.', models: [] };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function loadGroqModelsForSettings(apiKey) {
+  S.verifying = true;
+  S.setDraft = { ...(S.setDraft || { apiKey, model: CFG.groqModel || DEFAULT_MODEL }), verifyMsg: 'Verifying key & loading models...', verifyOk: null };
+  render();
+  const res = await fetchGroqModels(apiKey);
+  if (S.v !== 'settings') return;
+  S.verifying = false;
+  if (res.ok && res.models.length) {
+    S.groqModels = res.models;
+    const cur = (S.setDraft && S.setDraft.model) || CFG.groqModel || DEFAULT_MODEL;
+    if (!res.models.includes(cur) && res.models.includes(DEFAULT_MODEL)) {
+      S.setDraft.model = DEFAULT_MODEL;
+    }
+  }
+  S.setDraft = { ...(S.setDraft || {}), verifyMsg: res.msg, verifyOk: res.ok };
+  render();
+}
+
+async function capturePhoto(source, onCaptured) {
+  const cap = window.Capacitor;
+  if (cap && typeof cap.isNativePlatform === 'function' && cap.isNativePlatform() && cap.Plugins && cap.Plugins.Camera) {
+    try {
+      const photo = await cap.Plugins.Camera.getPhoto({
+        source,
+        resultType: 'dataUrl',
+        quality: 90,
+        allowEditing: false
+      });
+      if (photo && photo.dataUrl) {
+        const viewUrl = await compressImageSource(photo.dataUrl, 1400, 0.80, false);
+        const ocrUrl = await compressImageSource(photo.dataUrl, 900, 0.70, false);
+        await onCaptured(viewUrl, ocrUrl);
+      }
+    } catch (err) {
+      const msg = err && err.message ? err.message : '';
+      if (!/cancel/i.test(msg)) toast('Could not capture photo');
+    }
+    return true;
+  }
+  return false;
+}
+
+async function shareOrDownloadFile(filename, content, mimeType) {
+  const cap = window.Capacitor;
+  if (cap && typeof cap.isNativePlatform === 'function' && cap.isNativePlatform() && cap.Plugins && cap.Plugins.Filesystem && cap.Plugins.Share) {
+    const { Filesystem, Share } = cap.Plugins;
+    await Filesystem.writeFile({
+      path: filename,
+      data: content,
+      directory: 'CACHE',
+      encoding: 'utf8'
+    });
+    const uriRes = await Filesystem.getUri({ path: filename, directory: 'CACHE' });
+    await Share.share({ title: filename, url: uriRes.uri });
+  } else {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+}
+
+function csvCell(v) {
+  const s = String(v ?? '');
+  return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+
+async function exportCSV() {
+  const header = ['Account', 'Phone', 'Invoice No', 'Invoice Date', 'Due Date', 'Status', 'Invoice Amount (RM)', 'Paid (RM)', 'Balance (RM)', 'Payments'];
+  const rows = [header.map(csvCell).join(',')];
+  I.slice().sort((x, y) => x.invoiceDate < y.invoiceDate ? -1 : 1).forEach(i => {
+    const a = acc(i.accountId) || { name: 'Unknown', phone: '' };
+    const paySummary = i.payments.map(p => `${p.date}: ${(p.amountSen / 100).toFixed(2)}`).join('; ');
+    rows.push([
+      a.name,
+      a.phone || '',
+      i.number,
+      i.invoiceDate,
+      i.dueDate,
+      TAG[st(i)],
+      (i.amountSen / 100).toFixed(2),
+      (paidSen(i) / 100).toFixed(2),
+      (balSen(i) / 100).toFixed(2),
+      paySummary
+    ].map(csvCell).join(','));
+  });
+  const csv = '\uFEFF' + rows.join('\r\n');
+  const fname = `invoice-tracker-export-${off(0)}.csv`;
+  await shareOrDownloadFile(fname, csv, 'text/csv;charset=utf-8');
+  toast('CSV exported');
+}
+
+async function exportBackup() {
+  const accounts = await dbGetAll('accounts');
+  const invoices = await dbGetAll('invoices');
+  const payload = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    accounts,
+    invoices,
+    settings: {
+      groqApiKey: CFG.groqApiKey || '',
+      groqModel: CFG.groqModel || DEFAULT_MODEL
+    }
+  };
+  const fname = `invoice-tracker-backup-${off(0)}.json`;
+  await shareOrDownloadFile(fname, JSON.stringify(payload), 'application/json');
+  await saveSetting('lastBackupAt', new Date().toISOString());
+  toast('Backup saved');
+  render();
+}
+
+function validateBackup(data) {
+  if (!data || typeof data !== 'object') return false;
+  if (!Array.isArray(data.accounts) || !Array.isArray(data.invoices)) return false;
+  for (const a of data.accounts) {
+    if (!a || typeof a.id !== 'number' || typeof a.name !== 'string') return false;
+  }
+  for (const i of data.invoices) {
+    if (!i || typeof i.id !== 'number' || typeof i.accountId !== 'number' || typeof i.number !== 'string') return false;
+    if (!Number.isInteger(i.amountSen) || !Array.isArray(i.payments)) return false;
+  }
+  return true;
+}
+
+async function restoreBackup(data) {
+  await new Promise((resolve, reject) => {
+    const tx = db.transaction(['accounts', 'invoices', 'settings'], 'readwrite');
+    tx.objectStore('accounts').clear();
+    tx.objectStore('invoices').clear();
+    data.accounts.forEach(a => tx.objectStore('accounts').put(a));
+    data.invoices.forEach(i => tx.objectStore('invoices').put(i));
+    if (data.settings && typeof data.settings === 'object') {
+      if (typeof data.settings.groqApiKey === 'string') {
+        tx.objectStore('settings').put({ key: 'groqApiKey', value: data.settings.groqApiKey });
+      }
+      if (typeof data.settings.groqModel === 'string' && data.settings.groqModel.trim()) {
+        tx.objectStore('settings').put({ key: 'groqModel', value: data.settings.groqModel.trim() });
+      }
+    }
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+  A = await dbGetAll('accounts');
+  I = await loadInvoiceSummaries();
+  CFG = await loadSettings();
+  toast('Backup restored');
+  go('home');
+}
+
+document.addEventListener('click', async e => {
+  const b = e.target.closest('[data-a]');
+  if (!b) return;
+  const a = b.dataset.a, id = +b.dataset.id;
+  if (a === 'closesheet' && e.target !== b) return;
+  if (a === 'go') { if (b.dataset.v === 'new') S.d = {}; return go(b.dataset.v); }
+  if (a === 'acct') return go('acct', id);
+  if (a === 'pick') { S.d.acc = id; $('#as').value = acc(id).name; $('#al').style.display = 'none'; return; }
+  if (a === 'exp') { S.exp[id] = !S.exp[id]; render(); return; }
+  if (a === 'sheet') return openSheet(id);
+  if (a === 'closesheet') { S.sheet = null; S.sheetPhoto = null; S.zoomOpen = false; S.editInv = false; S.confirmDelInv = null; S.confirmDelPay = null; render(); return; }
+  if (a === 'openzoom') { if (!S.sheetPhoto) return; S.zoomOpen = true; S.zoomScale = 1; S.zoomX = 0; S.zoomY = 0; render(); return; }
+  if (a === 'closezoom') { S.zoomOpen = false; S.zoomScale = 1; S.zoomX = 0; S.zoomY = 0; render(); return; }
+  if (a === 'zoomin') { S.zoomScale = Math.min(5, +(S.zoomScale + 0.5).toFixed(2)); render(); return; }
+  if (a === 'zoomout') { S.zoomScale = Math.max(1, +(S.zoomScale - 0.5).toFixed(2)); if (S.zoomScale === 1) { S.zoomX = 0; S.zoomY = 0; } render(); return; }
+  if (a === 'zoomreset') { S.zoomScale = 1; S.zoomX = 0; S.zoomY = 0; render(); return; }
+  if (a === 'newfor') { S.d = { acc: S.acc }; return go('new'); }
+  if (a === 'toggleadd') { S.add = !S.add; render(); return; }
+  if (a === 'toggleadd2') { grab(); S.add = !S.add; render(); return; }
+  if (a === 'togglekey') { grabSettings(); S.showKey = !S.showKey; render(); return; }
+  if (a === 'dismissrem') { await saveSetting('weeklyReminderDismissedAt', new Date().toISOString()); render(); return; }
+
+  if (a === 'verifykey') {
+    grabSettings();
+    await loadGroqModelsForSettings(S.setDraft ? S.setDraft.apiKey : CFG.groqApiKey);
+    return;
+  }
+
+  if (a === 'saveset') {
+    grabSettings();
+    const key = ((S.setDraft && S.setDraft.apiKey) || '').trim();
+    const model = ((S.setDraft && S.setDraft.model) || '').trim() || DEFAULT_MODEL;
+    await saveSetting('groqApiKey', key);
+    await saveSetting('groqModel', model);
+    S.setDraft = { ...(S.setDraft || {}), apiKey: key, model, verifyMsg: 'Settings saved.', verifyOk: true };
+    toast('Settings saved');
+    render();
+    return;
+  }
+
+  if (a === 'exportcsv') {
+    try { await exportCSV(); } catch (err) { toast('Could not export CSV'); }
+    return;
+  }
+
+  if (a === 'backup') {
+    try { await exportBackup(); } catch (err) { toast('Could not save backup'); }
+    return;
+  }
+
+  if (a === 'restorebtn') {
+    const rf = $('#rf');
+    if (rf) { rf.value = ''; rf.click(); }
+    return;
+  }
+
+  if (a === 'scan') {
+    grab();
+    S.photoPrompt = 'scan';
+    render();
+    return;
+  }
+
+  if (a === 'rephoto') {
+    S.photoPrompt = 'edit';
+    render();
+    return;
+  }
+
+  if (a === 'closeprompt') {
+    if (b.classList.contains('modal-bg') && e.target !== b) return;
+    S.photoPrompt = null;
+    render();
+    return;
+  }
+
+  if (a === 'pickcam' || a === 'pickgal') {
+    const mode = S.photoPrompt;
+    S.photoPrompt = null;
+    render();
+    const src = a === 'pickcam' ? 'CAMERA' : 'PHOTOS';
+    const cb = mode === 'edit'
+      ? (async dataUrl => { S.sheetPhoto = dataUrl; render(); toast('Photo updated'); })
+      : processScannedImage;
+    const handled = await capturePhoto(src, cb);
+    if (!handled) {
+      const inp = mode === 'edit' ? $('#eph') : $('#ph');
+      if (inp) { inp.value = ''; inp.click(); }
+    }
+    return;
+  }
+
+  if (a === 'rmphoto') { S.sheetPhoto = null; render(); return; }
+
+  if (a === 'saveacc') {
+    const name = $('#an').value.trim();
+    if (!name) return toast('Enter the account name');
+    grab();
+    const phone = $('#ap').value.trim();
+    const rec = { name, phone, createdAt: new Date().toISOString() };
+    const newId = await dbAdd('accounts', rec);
+    A.push({ id: newId, ...rec });
+    S.add = false;
+    if (S.v === 'new') S.d.acc = newId;
+    toast('Account added');
+    render();
+    return;
+  }
+
+  if (a === 'editacc') { S.editAcc = true; S.confirmDelAcc = false; render(); return; }
+  if (a === 'canceleditacc') { S.editAcc = false; S.confirmDelAcc = false; render(); return; }
+  if (a === 'saveeditacc') {
+    const name = ($('#ea-name').value || '').trim();
+    if (!name) return toast('Enter the account name');
+    const phone = ($('#ea-phone').value || '').trim();
+    const cur = acc(S.acc);
+    if (!cur) return;
+    const updated = { ...cur, name, phone };
+    await dbPut('accounts', updated);
+    const idx = A.findIndex(x => x.id === cur.id);
+    if (idx !== -1) A[idx] = updated;
+    S.editAcc = false;
+    toast('Account updated');
+    render();
+    return;
+  }
+  if (a === 'delacc') { S.confirmDelAcc = true; render(); return; }
+  if (a === 'canceldelacc') { S.confirmDelAcc = false; render(); return; }
+  if (a === 'confirmdelacc') {
+    if (mine(S.acc).length > 0) return toast('Accounts with invoices cannot be deleted');
+    await dbDelete('accounts', S.acc);
+    A = A.filter(x => x.id !== S.acc);
+    toast('Account deleted');
+    return go('accounts');
+  }
+
+  if (a === 'saveinv') {
+    grab();
+    const d = S.d;
+    const accId = +d.acc;
+    if (!accId || !acc(accId)) return toast('Choose an account first');
+    const no = (d.no || '').trim();
+    const amtSen = toSen(d.amt);
+    if (!no || !(amtSen > 0)) return toast('Enter invoice number and amount');
+    const iss = d.iss || off(0);
+    const due = d.due || off(30);
+    if (!isValidDateStr(iss) || !isValidDateStr(due)) return toast('Enter valid invoice and due dates');
+    const rec = {
+      accountId: accId,
+      number: no,
+      invoiceDate: iss,
+      dueDate: due,
+      amountSen: amtSen,
+      photoDataUrl: d.img || null,
+      payments: [],
+      createdAt: new Date().toISOString()
+    };
+    const newId = await dbAdd('invoices', rec);
+    I.push({ id: newId, accountId: accId, number: no, invoiceDate: iss, dueDate: due, amountSen: amtSen, payments: [], hasPhoto: !!rec.photoDataUrl, createdAt: rec.createdAt });
+    toast('Invoice saved');
+    return go('acct', accId);
+  }
+
+  if (a === 'editinv') { S.editInv = true; S.confirmDelInv = null; S.confirmDelPay = null; render(); return; }
+  if (a === 'canceleditinv') {
+    S.editInv = false;
+    const full = await dbGet('invoices', S.sheet);
+    S.sheetPhoto = full ? (full.photoDataUrl || null) : null;
+    render();
+    return;
+  }
+  if (a === 'saveeditinv') {
+    const i = I.find(x => x.id === id);
+    if (!i) return;
+    const no = ($('#ei-no').value || '').trim();
+    const iss = $('#ei-iss').value;
+    const due = $('#ei-due').value;
+    const amtSen = toSen($('#ei-amt').value);
+    if (!no || !(amtSen > 0)) return toast('Enter invoice number and amount');
+    if (!isValidDateStr(iss) || !isValidDateStr(due)) return toast('Enter valid dates');
+    if (amtSen < paidSen(i)) return toast('Amount cannot be less than paid amount');
+    const full = await dbGet('invoices', id);
+    full.number = no;
+    full.invoiceDate = iss;
+    full.dueDate = due;
+    full.amountSen = amtSen;
+    full.photoDataUrl = S.sheetPhoto || null;
+    await dbPut('invoices', full);
+    i.number = no;
+    i.invoiceDate = iss;
+    i.dueDate = due;
+    i.amountSen = amtSen;
+    i.hasPhoto = !!full.photoDataUrl;
+    S.editInv = false;
+    toast('Invoice updated');
+    render();
+    return;
+  }
+
+  if (a === 'delinv') { S.confirmDelInv = id; render(); return; }
+  if (a === 'canceldelinv') { S.confirmDelInv = null; render(); return; }
+  if (a === 'confirmdelinv') {
+    await dbDelete('invoices', id);
+    I = I.filter(x => x.id !== id);
+    S.sheet = null; S.sheetPhoto = null; S.confirmDelInv = null;
+    toast('Invoice deleted');
+    render();
+    return;
+  }
+
+  if (a === 'delpay') { S.confirmDelPay = b.dataset.pid; render(); return; }
+  if (a === 'canceldelpay') { S.confirmDelPay = null; render(); return; }
+  if (a === 'confirmdelpay') {
+    const pid = b.dataset.pid;
+    const i = I.find(x => x.id === id);
+    if (!i) return;
+    const full = await dbGet('invoices', id);
+    full.payments = (full.payments || []).filter(p => p.id !== pid);
+    await dbPut('invoices', full);
+    i.payments = full.payments;
+    S.confirmDelPay = null;
+    toast('Payment removed');
+    render();
+    return;
+  }
+
+  if (a === 'payfull') {
+    const i = I.find(x => x.id === id);
+    if (!i) return;
+    const rem = balSen(i);
+    if (rem <= 0) return;
+    const full = await dbGet('invoices', id);
+    const p = { id: String(Date.now()) + '-' + Math.random().toString(36).slice(2, 7), date: off(0), amountSen: rem };
+    full.payments.push(p);
+    await dbPut('invoices', full);
+    i.payments = full.payments;
+    toast('Fully paid');
+    render();
+    return;
+  }
+
+  if (a === 'paypart') {
+    const i = I.find(x => x.id === id);
+    if (!i) return;
+    const vSen = toSen($('#pa').value);
+    if (!(vSen > 0)) return toast('Enter the amount received');
+    if (vSen > balSen(i)) return toast('That is more than the balance');
+    const full = await dbGet('invoices', id);
+    const p = { id: String(Date.now()) + '-' + Math.random().toString(36).slice(2, 7), date: off(0), amountSen: vSen };
+    full.payments.push(p);
+    await dbPut('invoices', full);
+    i.payments = full.payments;
+    toast('Payment recorded');
+    render();
+    return;
+  }
+});
+
+const list = q => {
+  const l = $('#al'), inp = $('#as'), app = $('#app');
+  if (!l || !inp || !app) return;
+  const m = A.filter(a => a.name.toLowerCase().includes(q.toLowerCase())).slice(0, 6);
+  l.style.display = 'block';
+  const asRect = inp.getBoundingClientRect();
+  const appRect = app.getBoundingClientRect();
+  l.style.top = (asRect.bottom - appRect.top + 4) + 'px';
+  l.innerHTML = m.map(a => `<button data-a="pick" data-id="${a.id}">${esc(a.name)}</button>`).join('') || '<p>No match. Tap + New account to add it.</p>';
+};
+
+document.addEventListener('input', e => {
+  if (e.target.id === 'as') { S.d.acc = null; list(e.target.value); }
+  if (e.target.id === 'rq') { S.q = e.target.value; $('#rl').innerHTML = recList(); }
+});
+document.addEventListener('focusin', e => { if (e.target.id === 'as') list(e.target.value); });
+document.addEventListener('click', e => { if (!e.target.closest('#as,#al') && $('#al')) $('#al').style.display = 'none'; });
+
+document.addEventListener('change', async e => {
+  if (e.target.id === 'sm-sel') {
+    grabSettings();
+    if (e.target.value === '__custom__') {
+      S.setDraft = { ...(S.setDraft || {}), customMode: true };
+    } else {
+      S.setDraft = { ...(S.setDraft || {}), customMode: false, model: e.target.value };
+    }
+    render();
+    return;
+  }
+  if (e.target.id === 'ph' && e.target.files && e.target.files[0]) {
+    grab();
+    try {
+      const file = e.target.files[0];
+      const viewUrl = await compressImageFile(file, 1400, 0.80);
+      const ocrUrl = await compressImageFile(file, 900, 0.70);
+      await processScannedImage(viewUrl, ocrUrl);
+    } catch (err) {
+      toast('Could not read image');
+    }
+  }
+  if (e.target.id === 'eph' && e.target.files && e.target.files[0]) {
+    try {
+      S.sheetPhoto = await compressImageFile(e.target.files[0]);
+      toast('Photo updated');
+      render();
+    } catch (err) {
+      toast('Could not read image');
+    }
+  }
+  if (e.target.id === 'rf' && e.target.files && e.target.files[0]) {
+    try {
+      const text = await e.target.files[0].text();
+      const data = JSON.parse(text);
+      if (!validateBackup(data)) return toast('Invalid backup file');
+      if (!confirm(`Restore ${data.accounts.length} account(s) and ${data.invoices.length} invoice(s)? This replaces all current data.`)) return;
+      await restoreBackup(data);
+    } catch (err) {
+      toast('Could not restore backup file');
+    }
+  }
+});
+
+// Full-screen zoom & pan gesture handling (pinch, double-tap, 1-finger drag)
+let ZT = { mode: null, startDist: 0, startScale: 1, startX: 0, startY: 0, baseX: 0, baseY: 0, lastTap: 0 };
+const applyZoomDOM = () => {
+  const img = $('#zimg');
+  if (img) img.style.transform = `translate(${S.zoomX}px,${S.zoomY}px) scale(${S.zoomScale})`;
+  const rst = document.querySelector('[data-a="zoomreset"]');
+  if (rst) rst.textContent = Math.round(S.zoomScale * 100) + '%';
+};
+document.addEventListener('touchstart', e => {
+  if (!S.zoomOpen || !e.target.closest('#zstage')) return;
+  if (e.touches.length === 2) {
+    ZT.mode = 'pinch';
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    ZT.startDist = Math.hypot(dx, dy) || 1;
+    ZT.startScale = S.zoomScale;
+  } else if (e.touches.length === 1) {
+    const now = Date.now();
+    if (now - ZT.lastTap < 280) {
+      e.preventDefault();
+      if (S.zoomScale > 1.05) { S.zoomScale = 1; S.zoomX = 0; S.zoomY = 0; }
+      else { S.zoomScale = 2.5; }
+      applyZoomDOM();
+      ZT.lastTap = 0;
+      return;
+    }
+    ZT.lastTap = now;
+    if (S.zoomScale > 1) {
+      ZT.mode = 'pan';
+      ZT.startX = e.touches[0].clientX;
+      ZT.startY = e.touches[0].clientY;
+      ZT.baseX = S.zoomX;
+      ZT.baseY = S.zoomY;
+    } else {
+      ZT.mode = null;
+    }
+  }
+}, { passive: false });
+document.addEventListener('touchmove', e => {
+  if (!S.zoomOpen || !ZT.mode) return;
+  if (ZT.mode === 'pinch' && e.touches.length === 2) {
+    e.preventDefault();
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    const dist = Math.hypot(dx, dy) || 1;
+    S.zoomScale = Math.min(5, Math.max(1, +(ZT.startScale * (dist / ZT.startDist)).toFixed(2)));
+    if (S.zoomScale === 1) { S.zoomX = 0; S.zoomY = 0; }
+    applyZoomDOM();
+  } else if (ZT.mode === 'pan' && e.touches.length === 1) {
+    e.preventDefault();
+    S.zoomX = ZT.baseX + (e.touches[0].clientX - ZT.startX);
+    S.zoomY = ZT.baseY + (e.touches[0].clientY - ZT.startY);
+    applyZoomDOM();
+  }
+}, { passive: false });
+document.addEventListener('touchend', e => {
+  if (e.touches.length === 0) ZT.mode = null;
+});
+
+// Android hardware Back button handling
+if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+  window.Capacitor.Plugins.App.addListener('backButton', () => {
+    if (S.zoomOpen) {
+      S.zoomOpen = false; S.zoomScale = 1; S.zoomX = 0; S.zoomY = 0;
+      render();
+    } else if (S.photoPrompt) {
+      S.photoPrompt = null;
+      render();
+    } else if (S.sheet !== null) {
+      S.sheet = null; S.sheetPhoto = null; S.editInv = false; S.confirmDelInv = null; S.confirmDelPay = null;
+      render();
+    } else if (S.v === 'acct') {
+      go('accounts');
+    } else if (S.v !== 'home') {
+      go('home');
+    } else {
+      window.Capacitor.Plugins.App.exitApp();
+    }
+  });
+}
+
+(async () => {
+  try {
+    db = await openDB();
+    A = await dbGetAll('accounts');
+    I = await loadInvoiceSummaries();
+    CFG = await loadSettings();
+    render();
+  } catch (err) {
+    $('#app').innerHTML = '<p class="empty">Storage error: ' + esc(err && err.message ? err.message : err) + '</p>';
+  }
+})();
+</script>
+</body>
+</html>

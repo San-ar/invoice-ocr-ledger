@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Invoice Tracker</string>
+    <string name="title_activity_main">Invoice Tracker</string>
+    <string name="package_name">com.shop.invoicetracker</string>
+    <string name="custom_url_scheme">com.shop.invoicetracker</string>
+</resources>
