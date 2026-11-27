@@ -15,6 +15,7 @@ button,input,select{font:inherit;color:var(--ink)}button{cursor:pointer}
 .hd{position:sticky;top:0;z-index:5;background:linear-gradient(160deg,var(--g1),var(--g2));color:#fff;padding:16px;border-style:solid;border-width:0 0 4px;border-image:var(--gold) 1;display:flex;align-items:center;justify-content:space-between;gap:10px}
 .hd h1{margin:0;font-size:20px;font-weight:700}.hd button{min-height:44px;padding:0 16px;background:rgba(255,255,255,.16);border:1.5px solid #e8c24a;color:#fff;border-radius:22px;font-weight:600}
 .hd .gear{width:44px;padding:0;display:flex;align-items:center;justify-content:center;flex:none}
+.hd .more-btn{display:inline-flex;align-items:center;gap:5px;padding:0 12px;font-size:14px;flex:none}
 .hd-r{display:flex;align-items:center;gap:10px}
 .tr{text-align:right;font-weight:600}.tr small{display:block;font-size:12px}.tr b{font-size:20px;color:#ffe58a}
 main{padding:14px 16px}
@@ -85,15 +86,42 @@ input,select{display:block;width:100%;min-height:48px;margin-top:5px;padding:0 1
 .soa-tbl td.bb{font-weight:700;font-size:11.5px}
 .soa-tbl td.chev{text-align:right;color:var(--mut);font-weight:700;font-size:14px;padding:8px 2px 8px 0}
 .soa-tbl tfoot td{font-weight:700;font-size:11.5px;border-top:2px solid var(--g2);padding:9px 3px 4px;background:#fff}
-#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:20px;font-size:14px;display:none;z-index:30}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:20px;font-size:14px;display:none;z-index:70}
+.splash{position:fixed;inset:0;z-index:60;background:linear-gradient(160deg,var(--g1),var(--g2));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .38s ease}
+.splash.out{opacity:0;pointer-events:none}
+.splash-card{width:116px;height:116px;border-radius:28px;background:#fff;border:3px solid #e8c24a;box-shadow:0 16px 36px rgba(0,0,0,.28);padding:14px;display:flex;align-items:center;justify-content:center;animation:splashPulse 1.2s ease-in-out infinite alternate}
+.splash-card img{width:100%;height:100%;object-fit:contain;border-radius:16px}
+.splash-title{color:#fff;font-size:22px;font-weight:700;letter-spacing:.02em;animation:splashFade .5s ease-out both}
+.splash-ver{position:absolute;bottom:calc(28px + env(safe-area-inset-bottom,0px));color:rgba(255,255,255,.85);font-size:13px;font-weight:600;letter-spacing:.04em}
+.rec-row{display:flex;align-items:stretch;gap:8px;margin-bottom:10px}
+.rec-row .ac{flex:1;margin-bottom:0}
+.rec-share{flex:none;align-self:center;min-height:44px;padding:0 12px}
+@keyframes splashFade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes splashPulse{from{transform:scale(.95);opacity:.92}to{transform:scale(1.03);opacity:1}}
+.lock-ov{position:fixed;inset:0;z-index:50;background:linear-gradient(165deg,var(--g1),var(--g2));color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 20px;overflow:auto}
+.lock-box{width:100%;max-width:340px;text-align:center}
+.lock-box h2{color:#ffe58a;border:0;margin:0 0 6px;font-size:15px}
+.lock-sub{color:#e6fff3;font-size:14px;margin:0 0 18px}
+.pin-dots{display:flex;justify-content:center;gap:16px;margin:14px 0 12px}
+.pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid #e8c24a;background:transparent;transition:background .15s}
+.pin-dot.on{background:#ffe58a}
+.pin-err{min-height:20px;font-size:13px;color:#ffd0cc;font-weight:600;margin:4px 0 10px}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:10px 0 14px}
+.pin-key{height:60px;border-radius:18px;border:1.5px solid rgba(232,194,74,.75);background:rgba(255,255,255,.14);color:#fff;font-size:22px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.pin-key:active{background:rgba(255,255,255,.30)}
+.pin-key.sm{font-size:14px}
+.lock-link{background:none;border:0;color:#ffe58a;font-size:14px;font-weight:600;text-decoration:underline;padding:8px 12px}
+.lock-card{background:var(--bg);color:var(--ink);border-radius:20px;border:2px solid #e8c24a;padding:18px 16px;text-align:left}
 </style>
 </head>
 <body>
+<div id="splash" class="splash"><div class="splash-card"><img src="icon-512.png" alt="Invoice Tracker"></div><div class="splash-title">Invoice Tracker</div><div class="splash-ver" id="splash-ver">v1.1.0</div></div>
 <div id="app"><p class="empty">Loading...</p></div>
 <div id="toast" role="status"></div>
 <script>
 const DB_NAME = 'invoice_tracker_db';
 const DB_VER = 1;
+const APP_VERSION = 'v1.1.0';
 const DEFAULT_MODEL = 'qwen/qwen3.8-27b';
 let db = null;
 
@@ -194,10 +222,18 @@ function loadInvoiceSummaries() {
 
 async function loadSettings() {
   const rows = await dbGetAll('settings');
-  const map = { groqApiKey: '', groqModel: DEFAULT_MODEL, lastBackupAt: '', weeklyReminderDismissedAt: '' };
+  const map = {
+    groqApiKey: '', groqModel: DEFAULT_MODEL, lastBackupAt: '', weeklyReminderDismissedAt: '',
+    lockEnabled: false, pinHash: '', bioEnabled: false, secQuestion: '', secAnswerHash: ''
+  };
   rows.forEach(r => { if (r && r.key) map[r.key] = r.value; });
   if (!map.groqModel) map.groqModel = DEFAULT_MODEL;
   return map;
+}
+
+async function sha256Hex(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(String(str)));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 async function saveSetting(key, value) {
@@ -210,8 +246,18 @@ const todayDate = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d
 const fd = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 const off = o => { const d = todayDate(); d.setDate(d.getDate() + o); return fd(d); };
 const MO = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const show = s => { const [y, m, d] = s.split('-'); return +d + ' ' + MO[m - 1] + ' ' + y; };
-const sd = s => { const [y, m, d] = s.split('-'); return +d + ' ' + MO[m - 1] + ' ' + y.slice(2); };
+const fmtDate = s => {
+  if (!s || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return String(s || '');
+  const [y, m, d] = s.split('-');
+  return String(+d).padStart(2, '0') + ' ' + MO[m - 1] + ' ' + y;
+};
+const show = fmtDate;
+const sd = fmtDate;
+const addDays = (s, n) => {
+  const base = isValidDateStr(s) ? new Date(s + 'T00:00') : todayDate();
+  base.setDate(base.getDate() + n);
+  return fd(base);
+};
 const days = s => Math.round((new Date(s + 'T00:00') - todayDate()) / 864e5);
 const isValidDateStr = s => /^\d{4}-\d{2}-\d{2}$/.test(s) && !isNaN(new Date(s + 'T00:00').getTime());
 
@@ -232,7 +278,10 @@ const $ = s => document.querySelector(s);
 // App state
 let A = [];
 let I = [];
-let CFG = { groqApiKey: '', groqModel: DEFAULT_MODEL, lastBackupAt: '', weeklyReminderDismissedAt: '' };
+let CFG = {
+  groqApiKey: '', groqModel: DEFAULT_MODEL, lastBackupAt: '', weeklyReminderDismissedAt: '',
+  lockEnabled: false, pinHash: '', bioEnabled: false, secQuestion: '', secAnswerHash: ''
+};
 let S = {
   v: 'home', acc: null, q: '', exp: {},
   sheet: null, sheetPhoto: null,
@@ -241,6 +290,9 @@ let S = {
   editAcc: false, confirmDelAcc: false,
   showKey: false, setDraft: null, verifying: false, groqModels: [],
   photoPrompt: null, scanning: false,
+  lockMode: null, pinEntry: '', pinErr: '', forgotMode: false, forgotVerified: false,
+  secEditing: false, secQCustom: false, secDraft: null, bioAvail: false,
+  reportDate: '',
   add: false, d: {}
 };
 
@@ -287,7 +339,11 @@ const IC = {
   tray: '<path d="M4 13l3-8h10l3 8v6H4zM4 13h5l1 2h4l1-2h5"/>',
   plus: '<path d="M12 5v14M5 12h14"/>',
   ppl: '<circle cx="9" cy="9" r="3"/><path d="M3 20c0-4 3-6 6-6s6 2 6 6M16 6a3 3 0 010 6M18 14c2 1 3 3 3 6"/>',
-  gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9c.26.6.85 1 1.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>'
+  more: '<circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/>',
+  report: '<path d="M4 19h16M7 16V9M12 16V5M17 16v-4"/>',
+  shield: '<path d="M12 3l7 3v6c0 5-3.5 8-7 9-3.5-1-7-4-7-9V6l7-3z"/>',
+  key: '<circle cx="8" cy="14" r="4"/><path d="M11 11l8-8M16 6l3 3"/>',
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/>'
 };
 const mod = (v, ic, t, s) => `<button class="mod" data-a="go" data-v="${v}"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f3d36b" stroke-width="2" aria-hidden="true">${IC[ic]}</svg></span><span><b>${t}</b><small>${s}</small></span></button>`;
 const bar = (t, r) => `<div class="hd"><h1>${t}</h1>${r}</div>`;
@@ -309,12 +365,12 @@ function home() {
   const tot = I.reduce((t, i) => t + balSen(i), 0);
   const l = A.filter(a => dueSen(a.id) > 0).sort((x, y) => dueSen(y.id) - dueSen(x.id));
   const emptyMsg = (A.length === 0 && I.length === 0)
-    ? '<p class="note">Welcome! Tap <b>New Entry</b> to record your first invoice, or tap the gear icon above to add your Groq API key for photo scanning.</p>'
+    ? '<p class="note">Welcome! Tap <b>New Entry</b> to record your first invoice, or tap <b>More → API Configuration</b> to add your Groq API key for photo scanning.</p>'
     : '<p class="empty">All caught up — no open dues.</p>';
   const remBanner = shouldShowBackupReminder()
-    ? `<div class="note warn"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span>It's been a week since your last backup. Save a backup file in Settings to keep your data safe.</span><button class="btn sm" data-a="dismissrem">Dismiss</button></div></div>`
+    ? `<div class="note warn"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span>It's been a week since your last backup. Save a backup file in More → API Configuration.</span><button class="btn sm" data-a="dismissrem">Dismiss</button></div></div>`
     : '';
-  const rightHdr = `<div class="hd-r"><div class="tr"><small>To receive</small><b>${rm(tot)}</b></div><button class="gear" data-a="go" data-v="settings" aria-label="Settings"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffe58a" stroke-width="2" aria-hidden="true">${IC.gear}</svg></button></div>`;
+  const rightHdr = `<div class="hd-r"><div class="tr"><small>To receive</small><b>${rm(tot)}</b></div><button class="gear" data-a="go" data-v="more" aria-label="More"><svg width="20" height="20" viewBox="0 0 24 24" fill="#ffe58a" aria-hidden="true">${IC.more}</svg></button></div>`;
   return bar('Invoice Tracker', rightHdr) +
     `<main>${remBanner}${mod('new', 'plus', 'New Entry', 'Add an invoice')}${mod('received', 'tray', 'Received', 'Mark payments')}${mod('accounts', 'ppl', 'Accounts', 'Statements and accounts')}<h2>Highest dues</h2>${l.length ? l.map(a => accCard(a, 'acct')).join('') : emptyMsg}</main>`;
 }
@@ -324,7 +380,7 @@ const recList = () => {
   if (!allOpen.length) return '<p class="empty">No unpaid invoices right now.</p>';
   const q = (S.q || '').toLowerCase();
   const l = allOpen.filter(a => a.name.toLowerCase().includes(q)).sort((x, y) => dueSen(y.id) - dueSen(x.id));
-  return l.map(a => accCard(a, 'exp') + (S.exp[a.id] ? `<div style="margin:-2px 0 6px 14px">${open(a.id).sort((x, y) => x.dueDate < y.dueDate ? -1 : x.dueDate > y.dueDate ? 1 : 0).map(invCard).join('')}</div>` : '')).join('') || '<p class="empty">No matching accounts.</p>';
+  return l.map(a => `<div class="rec-row">${accCard(a, 'exp')}<button class="btn sm rec-share" type="button" data-a="shareacc" data-id="${a.id}" aria-label="Share open invoices">Share</button></div>` + (S.exp[a.id] ? `<div style="margin:-2px 0 6px 14px">${open(a.id).sort((x, y) => x.dueDate < y.dueDate ? -1 : x.dueDate > y.dueDate ? 1 : 0).map(invCard).join('')}</div>` : '')).join('') || '<p class="empty">No matching accounts.</p>';
 };
 
 function received() {
@@ -386,12 +442,13 @@ function stmt() {
 
 function newEntry() {
   const d = S.d, a = d.acc ? acc(d.acc) : null;
+  const issVal = d.iss || off(0), dueVal = d.due || off(1);
   return bar('New Entry', back('home', 'Home')) +
     `<main><div class="row"><label>Account (type to search)<input id="as" autocomplete="off" placeholder="Start typing a name" value="${esc(a ? a.name : '')}"></label><button class="btn f" data-a="toggleadd2">+ New account</button></div><div id="al"></div>${S.add ? '<div style="height:10px"></div>' + addForm() : ''}
 <button class="btn" type="button" data-a="scan" style="margin-top:14px"${S.scanning ? ' disabled' : ''}>${S.scanning ? 'Reading invoice...' : 'Scan invoice photo (auto-fill)'}</button><input type="file" accept="image/*" id="ph" style="display:none">
 ${d.img ? `<div class="ph"><img alt="Invoice photo" src="${d.img}"></div>` : ''}
 ${d.scanNote ? `<p class="note">${esc(d.scanNote)}</p>` : ''}
-<label>Invoice number<input id="ni" autocomplete="off" value="${esc(d.no || '')}"></label><label>Invoice date<input type="date" id="nd" value="${d.iss || off(0)}"></label><label>Due date<input type="date" id="nu" value="${d.due || off(30)}"></label>
+<label>Invoice number<input id="ni" autocomplete="off" value="${esc(d.no || '')}"></label><label>Invoice date <small id="nd-lbl" style="color:var(--mut);font-weight:600">(${fmtDate(issVal)})</small><input type="date" id="nd" value="${issVal}"></label><label>Due date <small id="nu-lbl" style="color:var(--mut);font-weight:600">(${fmtDate(dueVal)})</small><input type="date" id="nu" value="${dueVal}"></label>
 <label>Amount (RM)<input type="number" step="0.01" inputmode="decimal" id="nm" value="${esc(d.amt || '')}"></label><button class="btn f" data-a="saveinv"${S.scanning ? ' disabled' : ''}>Save invoice</button></main>`;
 }
 
@@ -406,7 +463,7 @@ function settings() {
   const vNote = draft.verifyMsg
     ? `<p class="note${draft.verifyOk === false ? ' warn' : ''}" style="margin-top:8px;margin-bottom:8px">${esc(draft.verifyMsg)}</p>`
     : '';
-  return bar('Settings', back('home', 'Home')) +
+  return bar('API Configuration', back('more', 'Back')) +
     `<main>
       <h2>Groq OCR</h2>
       <div class="ac" style="display:block;border-radius:18px">
@@ -473,6 +530,220 @@ ${delInvCtrl}
 <button class="btn" data-a="closesheet">Close</button></div></div>`;
 }
 
+function more() {
+  const item = (act, v, ic, title, sub) => `<button class="mod" data-a="${act}"${v ? ` data-v="${v}"` : ''}><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f3d36b" stroke-width="2" aria-hidden="true">${IC[ic]}</svg></span><span><b>${title}</b><small>${sub}</small></span></button>`;
+  const lockSub = CFG.lockEnabled && CFG.pinHash ? 'Locked · PIN & backup' : 'Groq OCR, CSV export & backups';
+  return bar('More', back('home', 'Home')) +
+    `<main>
+      ${item('go', 'report', 'report', 'Report', 'Day Ending Report & summaries')}
+      ${item('go', 'security', 'shield', 'Security', CFG.lockEnabled && CFG.pinHash ? 'App Lock is ON' : 'PIN, fingerprint & recovery')}
+      ${item('open-api', '', 'key', 'API Configuration', lockSub)}
+      ${item('go', 'about', 'info', 'About', 'App info & developer credits')}
+    </main>`;
+}
+
+function getDayReportData(dateStr) {
+  const ev = [];
+  I.forEach(i => {
+    if (i.invoiceDate <= dateStr) {
+      ev.push({ d: i.invoiceDate, k: 0, order: i.createdAt || String(i.id).padStart(8, '0'), i });
+    }
+    i.payments.forEach((p, idx) => {
+      if (p.date <= dateStr) {
+        ev.push({ d: p.date, k: 1, order: p.id || String(idx).padStart(4, '0'), i, a: p.amountSen });
+      }
+    });
+  });
+  ev.sort((x, y) => x.d < y.d ? -1 : x.d > y.d ? 1 : x.k !== y.k ? x.k - y.k : x.order < y.order ? -1 : x.order > y.order ? 1 : 0);
+
+  const runBal = {};
+  const newDues = [];
+  const prevPaid = [];
+
+  ev.forEach(e => {
+    const aid = e.i.accountId;
+    const prev = runBal[aid] || 0;
+    const delta = e.k ? -e.a : e.i.amountSen;
+    const curr = prev + delta;
+    runBal[aid] = curr;
+    if (e.d === dateStr) {
+      const a = acc(aid);
+      const accountName = a ? a.name : 'Unknown';
+      if (e.k === 0) {
+        newDues.push({ invoiceId: e.i.id, invoiceNo: e.i.number, accountName, prevSen: prev, amtSen: e.i.amountSen, currSen: curr });
+      } else {
+        prevPaid.push({ invoiceId: e.i.id, invoiceNo: e.i.number, accountName, prevSen: prev, amtSen: e.a, currSen: curr });
+      }
+    }
+  });
+
+  const newDueTotalSen = newDues.reduce((t, x) => t + x.amtSen, 0);
+  const prevPaidTotalSen = prevPaid.reduce((t, x) => t + x.amtSen, 0);
+  const totalDueNowSen = Object.values(runBal).reduce((t, v) => t + Math.max(0, v), 0);
+  return { dateStr, newDues, newDueTotalSen, prevPaid, prevPaidTotalSen, totalDueNowSen };
+}
+
+function buildDayReportText(dStr) {
+  const { newDues, newDueTotalSen, prevPaid, prevPaidTotalSen, totalDueNowSen } = getDayReportData(dStr);
+  const newLines = newDues.length
+    ? newDues.map(x => `• ${x.accountName}: ${rm(x.prevSen)} + ${rm(x.amtSen)} = ${rm(x.currSen)} (${x.invoiceNo})`)
+    : ['• None'];
+  const paidLines = prevPaid.length
+    ? prevPaid.map(x => `• ${x.accountName}: ${rm(x.prevSen)} - ${rm(x.amtSen)} = ${rm(x.currSen)} (${x.invoiceNo})`)
+    : ['• None'];
+  return [
+    `Cash Sales Due Report Day (${fmtDate(dStr)})`,
+    '',
+    `New Due Invoices: ${newDues.length} ( ${rm(newDueTotalSen)} )`,
+    '',
+    `Previous Due Paid: ${prevPaid.length} ( ${rm(prevPaidTotalSen)} )`,
+    '',
+    'New Due:',
+    ...newLines,
+    '',
+    'Previous Paid:',
+    ...paidLines,
+    '',
+    `Total Due Amount Now: ${rm(totalDueNowSen)}`
+  ].join('\n');
+}
+
+function report() {
+  const dStr = S.reportDate || off(0);
+  const { newDues, newDueTotalSen, prevPaid, prevPaidTotalSen, totalDueNowSen } = getDayReportData(dStr);
+  const invRows = newDues.map(x => `<button class="iv" data-a="sheet" data-id="${x.invoiceId}"><div class="ih"><b>${esc(x.invoiceNo)}</b><small>${esc(x.accountName)}</small></div><div class="sl"><span>${rm(x.prevSen)} + ${rm(x.amtSen)}</span><span>= ${rm(x.currSen)}</span></div><div class="bl" style="margin-top:4px;padding-top:4px"><span>New Due</span><strong>${rm(x.amtSen)}</strong></div></button>`).join('') || '<p class="empty">No new due invoices on this date.</p>';
+  const payRows = prevPaid.map(x => `<button class="iv" data-a="sheet" data-id="${x.invoiceId}"><div class="ih"><b>${esc(x.invoiceNo)}</b><small>${esc(x.accountName)}</small></div><div class="sl"><span>${rm(x.prevSen)} - ${rm(x.amtSen)}</span><span>= ${rm(x.currSen)}</span></div><div class="bl" style="margin-top:4px;padding-top:4px"><span>Previous Paid</span><strong style="color:var(--bal)">${rm(x.amtSen)}</strong></div></button>`).join('') || '<p class="empty">No payments received on this date.</p>';
+
+  return bar('Day Ending Report', back('more', 'Back')) +
+    `<main>
+      <label>Report date<input type="date" id="rep-date" value="${esc(dStr)}"></label>
+      <div class="sum">
+        <div><small>New Due (${newDues.length})</small><b>${rm(newDueTotalSen)}</b></div>
+        <div><small>Prev Paid (${prevPaid.length})</small><b>${rm(prevPaidTotalSen)}</b></div>
+      </div>
+      <div class="note">Total Due Amount Now (${fmtDate(dStr)}): <b>${rm(totalDueNowSen)}</b></div>
+      <button class="btn f" type="button" data-a="sharereport">Copy / Share Summary</button>
+      <h2>New Due (${newDues.length})</h2>
+      ${invRows}
+      <h2>Previous Paid (${prevPaid.length})</h2>
+      ${payRows}
+    </main>`;
+}
+
+function security() {
+  const active = !!(CFG.lockEnabled && CFG.pinHash);
+  const qOpts = [
+    "What is your mother's maiden name?",
+    'What was your first shop or business name?',
+    'What city were you born in?'
+  ];
+  const sd = S.secDraft || {};
+  const curQ = sd.q !== undefined ? sd.q : (CFG.secQuestion || qOpts[0]);
+  const isCustomQ = S.secQCustom || (curQ === '__custom__') || (curQ && !qOpts.includes(curQ));
+  const qSelectHtml = qOpts.map(q => `<option value="${esc(q)}"${!isCustomQ && curQ === q ? ' selected' : ''}>${esc(q)}</option>`).join('') +
+    `<option value="__custom__"${isCustomQ ? ' selected' : ''}>Custom question...</option>`;
+
+  const showPinForm = !active || S.secEditing;
+  const pinFormHtml = showPinForm ? `
+    <div class="ac" style="display:block;border-radius:18px;margin-top:10px">
+      <h3 style="margin:0 0 10px;font-size:16px;color:var(--bal)">${active ? 'Change 4-Digit PIN' : 'Set Up 4-Digit PIN'}</h3>
+      <label>New 4-digit PIN<input id="sec-pin1" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••" value="${esc(sd.pin1 || '')}"></label>
+      <label>Confirm 4-digit PIN<input id="sec-pin2" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••" value="${esc(sd.pin2 || '')}"></label>
+      <label>Recovery security question<select id="sec-q">${qSelectHtml}</select></label>
+      ${isCustomQ ? `<label>Custom question<input id="sec-q-custom" autocomplete="off" placeholder="Enter your question" value="${esc(sd.qCustom !== undefined ? sd.qCustom : (qOpts.includes(curQ) || curQ === '__custom__' ? '' : curQ))}"></label>` : ''}
+      <label>Security answer (case-insensitive)<input id="sec-a" autocomplete="off" placeholder="Used if you forget your PIN" value="${esc(sd.ans || '')}"></label>
+      <div class="row">
+        <button class="btn f" type="button" data-a="savepin" style="flex:1">Save PIN</button>
+        ${active ? '<button class="btn" type="button" data-a="cancelpin">Cancel</button>' : ''}
+      </div>
+    </div>` : '';
+
+  const activeControls = active ? `
+    <div class="ac" style="display:block;border-radius:18px">
+      <div class="dl" style="border-top:0"><span>App Lock</span><span class="tag d">Enabled</span></div>
+      <div class="dl" style="border-bottom:0;padding-top:10px">
+        <span>Fingerprint Unlock</span>
+        <button class="btn sm${CFG.bioEnabled ? ' f' : ''}" type="button" data-a="togglebio"${!S.bioAvail ? ' disabled' : ''}>${CFG.bioEnabled ? 'ON' : 'OFF'}</button>
+      </div>
+      ${!S.bioAvail ? '<p style="margin:4px 0 0;font-size:12px;color:var(--mut)">Fingerprint hardware is not available on this device.</p>' : ''}
+    </div>
+    <div class="row">
+      <button class="btn" type="button" data-a="startchangepin" style="flex:1">Change PIN</button>
+      <button class="btn danger" type="button" data-a="disablelock">Disable Lock</button>
+    </div>` : '<p class="note">App Lock protects app launch and API Configuration / Backups with a 4-digit PIN and optional Fingerprint unlock.</p>';
+
+  return bar('Security', back('more', 'Back')) + `<main>${activeControls}${pinFormHtml}</main>`;
+}
+
+function about() {
+  return bar('About', back('more', 'Back')) +
+    `<main>
+      <h2>About the App</h2>
+      <div class="ac" style="display:block;border-radius:18px">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+          <img src="icon-192.png" alt="Invoice Tracker" style="width:52px;height:52px;border-radius:14px;border:1.5px solid #e8c24a;background:#fff;padding:4px">
+          <div><b style="font-size:18px;display:block">Invoice Tracker</b><small style="color:var(--mut)">Version ${esc(APP_VERSION.replace(/^v/, ''))}</small></div>
+        </div>
+        <p style="margin:0 0 8px;font-size:14px">Offline-first invoice &amp; payment ledger designed for fast shop management, running customer statements, and Day Ending summaries.</p>
+        <p style="margin:0;font-size:13px;color:var(--mut)"><b>Privacy:</b> All accounts, invoices, payments, photos, and keys are stored locally on your device in IndexedDB. Only invoice photos you choose to scan are sent directly to Groq Vision using your own API key.</p>
+      </div>
+      <h2>About the Developer</h2>
+      <div class="ac" style="display:block;border-radius:18px">
+        <div class="dl"><span>Developer</span><b>Sanar</b></div>
+        <div class="dl" style="border-bottom:0"><span>GitHub</span><span style="font-size:13px;color:var(--mut)">github.com/San-ar</span></div>
+      </div>
+    </main>`;
+}
+
+function lockModal() {
+  if (!S.lockMode) return '';
+  const titleMap = {
+    'unlock': 'Unlock Invoice Tracker',
+    'api': 'Verify to open API Configuration',
+    'disable': 'Verify to disable App Lock',
+    'changepin': 'Verify current PIN'
+  };
+  const canCancel = S.lockMode !== 'unlock';
+
+  if (S.forgotMode) {
+    if (S.forgotVerified) {
+      return `<div class="lock-ov"><div class="lock-box"><h2>Reset PIN</h2><p class="lock-sub">Enter a new 4-digit PIN</p>
+        <div class="lock-card">
+          <label>New 4-digit PIN<input id="fp-pin1" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••"></label>
+          <label>Confirm 4-digit PIN<input id="fp-pin2" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••"></label>
+          <button class="btn f" type="button" data-a="saveforgotpin">Save New PIN</button>
+          <button class="btn" type="button" data-a="cancelforgot">Back to Keypad</button>
+        </div></div></div>`;
+    }
+    return `<div class="lock-ov"><div class="lock-box"><h2>PIN Recovery</h2><p class="lock-sub">Answer your security question</p>
+      <div class="lock-card">
+        <p style="margin:0 0 10px;font-weight:700;color:var(--bal)">${esc(CFG.secQuestion || 'Security Question')}</p>
+        <label>Your answer<input id="fp-ans" autocomplete="off" placeholder="Enter answer"></label>
+        <button class="btn f" type="button" data-a="verifysec">Verify Answer</button>
+        <button class="btn" type="button" data-a="cancelforgot">Back to Keypad</button>
+      </div></div></div>`;
+  }
+
+  const dots = [0, 1, 2, 3].map(idx => `<span class="pin-dot${idx < S.pinEntry.length ? ' on' : ''}"></span>`).join('');
+  const bioBtn = CFG.bioEnabled
+    ? `<button class="pin-key sm" type="button" data-a="pin-bio" aria-label="Use Fingerprint">Finger</button>`
+    : `<span></span>`;
+  return `<div class="lock-ov"><div class="lock-box">
+    <h2>${esc(titleMap[S.lockMode] || 'Enter PIN')}</h2>
+    <p class="lock-sub">Enter your 4-digit PIN</p>
+    <div class="pin-dots">${dots}</div>
+    <div class="pin-err">${esc(S.pinErr || '')}</div>
+    <div class="pin-pad">
+      ${[1,2,3,4,5,6,7,8,9].map(n => `<button class="pin-key" type="button" data-a="pin-digit" data-d="${n}">${n}</button>`).join('')}
+      ${bioBtn}
+      <button class="pin-key" type="button" data-a="pin-digit" data-d="0">0</button>
+      <button class="pin-key sm" type="button" data-a="pin-back" aria-label="Backspace">&#9003;</button>
+    </div>
+    ${CFG.secAnswerHash ? '<button class="lock-link" type="button" data-a="forgotpin">Forgot PIN?</button>' : ''}
+    ${canCancel ? '<button class="lock-link" type="button" data-a="cancellock">Cancel</button>' : ''}
+  </div></div>`;
+}
+
 function photoPromptModal() {
   if (!S.photoPrompt) return '';
   return `<div class="modal-bg" data-a="closeprompt"><div class="modal-card"><h3>Select invoice photo</h3><button class="btn f" type="button" data-a="pickcam">Take Photo (Camera)</button><button class="btn" type="button" data-a="pickgal">Choose from Gallery</button><button class="btn" type="button" data-a="closeprompt">Cancel</button></div></div>`;
@@ -484,8 +755,8 @@ function zoomModal() {
   return `<div class="zoom-ov"><div class="zoom-bar"><div style="display:flex;gap:6px;align-items:center"><button type="button" data-a="zoomout">-</button><button type="button" data-a="zoomreset">${pct}%</button><button type="button" data-a="zoomin">+</button></div><button type="button" data-a="closezoom">Close &#10005;</button></div><div class="zoom-stage" id="zstage"><img id="zimg" alt="Invoice photo zoom" src="${S.sheetPhoto}" style="transform:translate(${S.zoomX}px,${S.zoomY}px) scale(${S.zoomScale})"></div></div>`;
 }
 
-const VIEWS = { home, received, accounts, acct: stmt, new: newEntry, settings };
-const render = () => { $('#app').innerHTML = VIEWS[S.v]() + sheet() + photoPromptModal() + zoomModal(); };
+const VIEWS = { home, received, accounts, acct: stmt, new: newEntry, more, report, security, about, settings };
+const render = () => { $('#app').innerHTML = VIEWS[S.v]() + sheet() + photoPromptModal() + zoomModal() + lockModal(); };
 const go = (v, a) => {
   S.v = v; S.q = '';
   if (a !== undefined) S.acc = a;
@@ -494,10 +765,15 @@ const go = (v, a) => {
   S.editInv = false; S.confirmDelInv = null; S.confirmDelPay = null;
   S.editAcc = false; S.confirmDelAcc = false;
   S.setDraft = null; S.verifying = false; S.photoPrompt = null;
+  S.secEditing = false; S.secQCustom = false; S.secDraft = null;
+  if (v === 'report' && !S.reportDate) S.reportDate = off(0);
   scrollTo(0, 0);
   render();
   if (v === 'settings' && CFG.groqApiKey) {
     loadGroqModelsForSettings(CFG.groqApiKey);
+  }
+  if (v === 'security') {
+    checkBiometricAvailable();
   }
 };
 const grabSettings = () => {
@@ -625,6 +901,8 @@ async function runGroqOCR(ocrDataUrl) {
     }
     if (parsed.due_date !== null && parsed.due_date !== undefined && isValidDateStr(String(parsed.due_date).trim())) {
       S.d.due = String(parsed.due_date).trim();
+    } else if (!S.d.due) {
+      S.d.due = off(1);
     }
     if (parsed.amount !== null && parsed.amount !== undefined && String(parsed.amount).trim() !== '') {
       const cleanAmount = String(parsed.amount).replace(/,/g, '').replace(/[^0-9.\-]/g, '');
@@ -651,7 +929,7 @@ async function processScannedImage(viewDataUrl, ocrDataUrl) {
     ...S.d,
     img: viewDataUrl,
     iss: S.d.iss || off(0),
-    due: S.d.due || off(30),
+    due: S.d.due || off(1),
     scanNote: 'Reading invoice details...'
   };
   S.scanning = true;
@@ -780,13 +1058,13 @@ async function exportCSV() {
   const rows = [header.map(csvCell).join(',')];
   I.slice().sort((x, y) => x.invoiceDate < y.invoiceDate ? -1 : 1).forEach(i => {
     const a = acc(i.accountId) || { name: 'Unknown', phone: '' };
-    const paySummary = i.payments.map(p => `${p.date}: ${(p.amountSen / 100).toFixed(2)}`).join('; ');
+    const paySummary = i.payments.map(p => `${fmtDate(p.date)}: ${(p.amountSen / 100).toFixed(2)}`).join('; ');
     rows.push([
       a.name,
       a.phone || '',
       i.number,
-      i.invoiceDate,
-      i.dueDate,
+      fmtDate(i.invoiceDate),
+      fmtDate(i.dueDate),
       TAG[st(i)],
       (i.amountSen / 100).toFixed(2),
       (paidSen(i) / 100).toFixed(2),
@@ -810,7 +1088,12 @@ async function exportBackup() {
     invoices,
     settings: {
       groqApiKey: CFG.groqApiKey || '',
-      groqModel: CFG.groqModel || DEFAULT_MODEL
+      groqModel: CFG.groqModel || DEFAULT_MODEL,
+      lockEnabled: !!CFG.lockEnabled,
+      pinHash: CFG.pinHash || '',
+      bioEnabled: !!CFG.bioEnabled,
+      secQuestion: CFG.secQuestion || '',
+      secAnswerHash: CFG.secAnswerHash || ''
     }
   };
   const fname = `invoice-tracker-backup-${off(0)}.json`;
@@ -847,6 +1130,12 @@ async function restoreBackup(data) {
       if (typeof data.settings.groqModel === 'string' && data.settings.groqModel.trim()) {
         tx.objectStore('settings').put({ key: 'groqModel', value: data.settings.groqModel.trim() });
       }
+      ['lockEnabled', 'bioEnabled'].forEach(k => {
+        if (typeof data.settings[k] === 'boolean') tx.objectStore('settings').put({ key: k, value: data.settings[k] });
+      });
+      ['pinHash', 'secQuestion', 'secAnswerHash'].forEach(k => {
+        if (typeof data.settings[k] === 'string') tx.objectStore('settings').put({ key: k, value: data.settings[k] });
+      });
     }
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
@@ -858,12 +1147,219 @@ async function restoreBackup(data) {
   go('home');
 }
 
+async function checkBiometricAvailable() {
+  try {
+    const nb = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.NativeBiometric;
+    if (!nb) { S.bioAvail = false; render(); return false; }
+    const res = await nb.isAvailable({ useFallback: false });
+    S.bioAvail = !!(res && res.isAvailable);
+  } catch (err) {
+    S.bioAvail = false;
+  }
+  if (S.v === 'security') render();
+  return S.bioAvail;
+}
+
+async function triggerBiometricAuth() {
+  const nb = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.NativeBiometric;
+  if (!nb) return false;
+  try {
+    await nb.verifyIdentity({
+      reason: 'Unlock Invoice Tracker',
+      title: 'Fingerprint Verification',
+      subtitle: 'Verify your identity to continue',
+      negativeButtonText: 'Use App PIN',
+      useFallback: false
+    });
+    await onLockVerified();
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
+function openLockPrompt(mode) {
+  S.lockMode = mode;
+  S.pinEntry = '';
+  S.pinErr = '';
+  S.forgotMode = false;
+  S.forgotVerified = false;
+  render();
+  if (CFG.bioEnabled) {
+    setTimeout(() => { if (S.lockMode === mode && !S.forgotMode) triggerBiometricAuth(); }, 180);
+  }
+}
+
+async function onLockVerified() {
+  const mode = S.lockMode;
+  S.lockMode = null;
+  S.pinEntry = '';
+  S.pinErr = '';
+  S.forgotMode = false;
+  S.forgotVerified = false;
+  if (mode === 'api') {
+    return go('settings');
+  }
+  if (mode === 'disable') {
+    await saveSetting('lockEnabled', false);
+    await saveSetting('bioEnabled', false);
+    toast('App Lock disabled');
+    render();
+    return;
+  }
+  if (mode === 'changepin') {
+    S.secEditing = true;
+    render();
+    return;
+  }
+  render();
+}
+
+async function shareTextSummary(title, text) {
+  const cap = window.Capacitor;
+  if (cap && typeof cap.isNativePlatform === 'function' && cap.isNativePlatform() && cap.Plugins && cap.Plugins.Share) {
+    try { await cap.Plugins.Share.share({ title, text }); return; } catch (_) {}
+  }
+  if (navigator.share) {
+    try { await navigator.share({ title, text }); return; } catch (_) {}
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    await navigator.clipboard.writeText(text);
+    toast('Summary copied to clipboard');
+    return;
+  }
+  toast('Summary ready');
+}
+
+function buildAccountOpenShareText(accountId) {
+  const a = acc(accountId);
+  const invs = open(accountId).slice().sort((x, y) => x.dueDate < y.dueDate ? -1 : x.dueDate > y.dueDate ? 1 : 0);
+  const lines = [
+    `*Outstanding Invoices — ${a ? a.name : 'Account'}*`,
+    `_Date: ${fmtDate(off(0))}_`,
+    ''
+  ];
+  invs.forEach((i, idx) => {
+    const pd = paidSen(i);
+    const rem = balSen(i);
+    const badge = pd > 0 ? 'Partial' : 'Unpaid';
+    const amtStr = nFmt(i.amountSen);
+    const pdStr = nFmt(pd);
+    const remStr = nFmt(rem);
+    const maxLen = Math.max(amtStr.length, pd > 0 ? pdStr.length : 0, remStr.length);
+    const padNum = s => (s.length < maxLen ? ' '.repeat((maxLen - s.length) * 2) : '') + s;
+    lines.push(`${idx + 1}. *${i.number}* [${badge}]`);
+    lines.push(`   _Invoice Date: ${fmtDate(i.invoiceDate)}_`);
+    lines.push('   ');
+    lines.push(`   Invoice Amount: RM ${padNum(amtStr)}`);
+    if (pd > 0) lines.push(`   Partially  Paid:     RM ${padNum(pdStr)}`);
+    lines.push(`   Remaining Due:  *RM ${padNum(remStr)}*`);
+    lines.push('');
+  });
+  lines.push(`_Total Outstanding Due:_ *${rm(dueSen(accountId))}*`);
+  return lines.join('\n');
+}
+
 document.addEventListener('click', async e => {
   const b = e.target.closest('[data-a]');
   if (!b) return;
   const a = b.dataset.a, id = +b.dataset.id;
   if (a === 'closesheet' && e.target !== b) return;
   if (a === 'go') { if (b.dataset.v === 'new') S.d = {}; return go(b.dataset.v); }
+  if (a === 'open-api') {
+    if (CFG.lockEnabled && CFG.pinHash) return openLockPrompt('api');
+    return go('settings');
+  }
+  if (a === 'pin-digit') {
+    if (S.pinEntry.length >= 4) return;
+    S.pinEntry += b.dataset.d;
+    S.pinErr = '';
+    render();
+    if (S.pinEntry.length === 4) {
+      const h = await sha256Hex('invtrack-pin:' + S.pinEntry);
+      if (h === CFG.pinHash) {
+        await onLockVerified();
+      } else {
+        S.pinEntry = '';
+        S.pinErr = 'Incorrect PIN. Try again.';
+        render();
+      }
+    }
+    return;
+  }
+  if (a === 'pin-back') { S.pinEntry = S.pinEntry.slice(0, -1); S.pinErr = ''; render(); return; }
+  if (a === 'pin-bio') { await triggerBiometricAuth(); return; }
+  if (a === 'cancellock') { if (S.lockMode !== 'unlock') { S.lockMode = null; S.pinEntry = ''; S.pinErr = ''; render(); } return; }
+  if (a === 'forgotpin') { S.forgotMode = true; S.forgotVerified = false; S.pinErr = ''; render(); return; }
+  if (a === 'cancelforgot') { S.forgotMode = false; S.forgotVerified = false; S.pinEntry = ''; render(); return; }
+  if (a === 'verifysec') {
+    const ans = ($('#fp-ans')?.value || '').trim().toLowerCase();
+    if (!ans) return toast('Enter your security answer');
+    const h = await sha256Hex('invtrack-ans:' + ans);
+    if (h === CFG.secAnswerHash) {
+      S.forgotVerified = true;
+      render();
+    } else {
+      toast('Incorrect answer');
+    }
+    return;
+  }
+  if (a === 'saveforgotpin') {
+    const p1 = ($('#fp-pin1')?.value || '').trim();
+    const p2 = ($('#fp-pin2')?.value || '').trim();
+    if (!/^\d{4}$/.test(p1)) return toast('PIN must be 4 digits');
+    if (p1 !== p2) return toast('PINs do not match');
+    const hash = await sha256Hex('invtrack-pin:' + p1);
+    await saveSetting('pinHash', hash);
+    await saveSetting('lockEnabled', true);
+    toast('PIN reset');
+    await onLockVerified();
+    return;
+  }
+  if (a === 'savepin') {
+    const p1 = ($('#sec-pin1')?.value || '').trim();
+    const p2 = ($('#sec-pin2')?.value || '').trim();
+    if (!/^\d{4}$/.test(p1)) return toast('Enter a 4-digit PIN');
+    if (p1 !== p2) return toast('PINs do not match');
+    const qSel = $('#sec-q')?.value || '';
+    const q = qSel === '__custom__' ? ($('#sec-q-custom')?.value || '').trim() : qSel;
+    const ans = ($('#sec-a')?.value || '').trim().toLowerCase();
+    if (!q) return toast('Enter a security question');
+    if (!ans) return toast('Enter a security answer for PIN recovery');
+    const pHash = await sha256Hex('invtrack-pin:' + p1);
+    const aHash = await sha256Hex('invtrack-ans:' + ans);
+    await saveSetting('pinHash', pHash);
+    await saveSetting('secQuestion', q);
+    await saveSetting('secAnswerHash', aHash);
+    await saveSetting('lockEnabled', true);
+    S.secEditing = false;
+    S.secDraft = null;
+    toast('App Lock enabled');
+    render();
+    return;
+  }
+  if (a === 'cancelpin') { S.secEditing = false; S.secDraft = null; render(); return; }
+  if (a === 'startchangepin') { return openLockPrompt('changepin'); }
+  if (a === 'disablelock') { return openLockPrompt('disable'); }
+  if (a === 'togglebio') {
+    if (!S.bioAvail) return toast('Fingerprint not available');
+    const next = !CFG.bioEnabled;
+    await saveSetting('bioEnabled', next);
+    toast(next ? 'Fingerprint unlock enabled' : 'Fingerprint unlock disabled');
+    render();
+    return;
+  }
+  if (a === 'sharereport') {
+    const dStr = S.reportDate || off(0);
+    await shareTextSummary(`Cash Sales Due Report (${fmtDate(dStr)})`, buildDayReportText(dStr));
+    return;
+  }
+  if (a === 'shareacc') {
+    const aObj = acc(id);
+    if (!aObj || !open(id).length) return toast('No open invoices');
+    await shareTextSummary(`Outstanding Invoices — ${aObj.name}`, buildAccountOpenShareText(id));
+    return;
+  }
   if (a === 'acct') return go('acct', id);
   if (a === 'pick') { S.d.acc = id; $('#as').value = acc(id).name; $('#al').style.display = 'none'; return; }
   if (a === 'exp') { S.exp[id] = !S.exp[id]; render(); return; }
@@ -1003,7 +1499,7 @@ document.addEventListener('click', async e => {
     const amtSen = toSen(d.amt);
     if (!no || !(amtSen > 0)) return toast('Enter invoice number and amount');
     const iss = d.iss || off(0);
-    const due = d.due || off(30);
+    const due = d.due || off(1);
     if (!isValidDateStr(iss) || !isValidDateStr(due)) return toast('Enter valid invoice and due dates');
     const rec = {
       accountId: accId,
@@ -1130,11 +1626,30 @@ const list = q => {
 document.addEventListener('input', e => {
   if (e.target.id === 'as') { S.d.acc = null; list(e.target.value); }
   if (e.target.id === 'rq') { S.q = e.target.value; $('#rl').innerHTML = recList(); }
+  if (e.target.id === 'nd' && $('#nd-lbl') && isValidDateStr(e.target.value)) $('#nd-lbl').textContent = `(${fmtDate(e.target.value)})`;
+  if (e.target.id === 'nu' && $('#nu-lbl') && isValidDateStr(e.target.value)) $('#nu-lbl').textContent = `(${fmtDate(e.target.value)})`;
 });
 document.addEventListener('focusin', e => { if (e.target.id === 'as') list(e.target.value); });
 document.addEventListener('click', e => { if (!e.target.closest('#as,#al') && $('#al')) $('#al').style.display = 'none'; });
 
 document.addEventListener('change', async e => {
+  if (e.target.id === 'rep-date') {
+    S.reportDate = e.target.value || off(0);
+    render();
+    return;
+  }
+  if (e.target.id === 'sec-q') {
+    S.secDraft = {
+      pin1: $('#sec-pin1')?.value || '',
+      pin2: $('#sec-pin2')?.value || '',
+      q: e.target.value,
+      qCustom: $('#sec-q-custom')?.value || '',
+      ans: $('#sec-a')?.value || ''
+    };
+    S.secQCustom = e.target.value === '__custom__';
+    render();
+    return;
+  }
   if (e.target.id === 'sm-sel') {
     grabSettings();
     if (e.target.value === '__custom__') {
@@ -1240,7 +1755,14 @@ document.addEventListener('touchend', e => {
 // Android hardware Back button handling
 if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
   window.Capacitor.Plugins.App.addListener('backButton', () => {
-    if (S.zoomOpen) {
+    if (S.lockMode) {
+      if (S.lockMode === 'unlock') {
+        window.Capacitor.Plugins.App.exitApp();
+      } else {
+        S.lockMode = null; S.pinEntry = ''; S.pinErr = ''; S.forgotMode = false;
+        render();
+      }
+    } else if (S.zoomOpen) {
       S.zoomOpen = false; S.zoomScale = 1; S.zoomX = 0; S.zoomY = 0;
       render();
     } else if (S.photoPrompt) {
@@ -1251,6 +1773,8 @@ if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App
       render();
     } else if (S.v === 'acct') {
       go('accounts');
+    } else if (['report', 'security', 'settings', 'about'].includes(S.v)) {
+      go('more');
     } else if (S.v !== 'home') {
       go('home');
     } else {
@@ -1260,14 +1784,33 @@ if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App
 }
 
 (async () => {
+  const sv = $('#splash-ver');
+  if (sv) sv.textContent = APP_VERSION;
+  const t0 = Date.now();
   try {
     db = await openDB();
     A = await dbGetAll('accounts');
     I = await loadInvoiceSummaries();
     CFG = await loadSettings();
+    if (CFG.lockEnabled && CFG.pinHash) {
+      S.lockMode = 'unlock';
+    }
     render();
   } catch (err) {
     $('#app').innerHTML = '<p class="empty">Storage error: ' + esc(err && err.message ? err.message : err) + '</p>';
+  } finally {
+    const elapsed = Date.now() - t0;
+    const wait = Math.max(0, 1250 - elapsed);
+    setTimeout(() => {
+      const sp = $('#splash');
+      if (sp) {
+        sp.classList.add('out');
+        setTimeout(() => { sp.remove(); }, 400);
+      }
+      if (S.lockMode === 'unlock' && CFG.bioEnabled) {
+        triggerBiometricAuth();
+      }
+    }, wait);
   }
 })();
 </script>
