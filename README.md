@@ -25,7 +25,7 @@ flowchart LR
 - **Statement of Account & Full-Screen Zoom:** Fixed-layout running statement per customer (`Date`, `Details`, `Invoice`, `Received`, `Balance`), full CRUD for accounts/invoices/payments, and a pinch-to-zoom invoice photo viewer.
 - **Day Ending Report & WhatsApp Quick-Share:** Generates a chronological `Cash Sales Due Report Day (DD MMM YYYY)` and lets you share an account's open (`Unpaid` / `Partial`) invoices directly via the Android Share Sheet.
 - **PIN & Biometric App Lock:** Optional 4-digit PIN (SHA-256 hashed locally) with offline Security Question recovery and biometrics-only Android Fingerprint unlock (`@capgo/capacitor-native-biometric`) protecting app launch and API Configuration.
-- **CSV Export & Portable JSON Backups:** Export Excel-ready CSVs or full JSON backups (including photos, settings, and security config) via the Android Share Sheet, with one-tap JSON restore.
+- **CSV Export & Portable JSON Backups:** Export Excel-ready CSVs or JSON ledger backups (accounts, invoices, payments, and compressed photos) via the Android Share Sheet, with one-tap JSON restore. API keys and PIN/security credentials are intentionally excluded from backup files.
 
 ---
 
@@ -110,5 +110,5 @@ To build a **Signed Release APK** (`./gradlew assembleRelease`), place your `*.j
 ## Data, Backups & Keystore Safety
 
 - **On-Device Privacy:** All customer accounts, invoices, payments, compressed photos, and API keys stay locally on your phone in IndexedDB.
-- **Regular Backups:** Use **More → API Configuration → Save backup file** to export a full JSON backup to Google Drive or WhatsApp.
+- **Regular Backups:** Use **More → API Configuration → Save backup file** to export a JSON backup of your ledger and photos to Google Drive or WhatsApp. For security, backups never include your Groq API key or PIN/recovery hashes—re-enter your key and set a new PIN when restoring on a new device.
 - **Keystore Safety:** Never commit `*.jks`, `*.keystore`, or `keystore.properties` to Git. Keep your release keystore backed up safely outside the repository—future APK updates must be signed with the exact same key to install over an existing app without losing data.

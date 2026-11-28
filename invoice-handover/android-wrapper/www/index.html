@@ -1087,13 +1087,7 @@ async function exportBackup() {
     accounts,
     invoices,
     settings: {
-      groqApiKey: CFG.groqApiKey || '',
-      groqModel: CFG.groqModel || DEFAULT_MODEL,
-      lockEnabled: !!CFG.lockEnabled,
-      pinHash: CFG.pinHash || '',
-      bioEnabled: !!CFG.bioEnabled,
-      secQuestion: CFG.secQuestion || '',
-      secAnswerHash: CFG.secAnswerHash || ''
+      groqModel: CFG.groqModel || DEFAULT_MODEL
     }
   };
   const fname = `invoice-tracker-backup-${off(0)}.json`;
@@ -1124,18 +1118,9 @@ async function restoreBackup(data) {
     data.accounts.forEach(a => tx.objectStore('accounts').put(a));
     data.invoices.forEach(i => tx.objectStore('invoices').put(i));
     if (data.settings && typeof data.settings === 'object') {
-      if (typeof data.settings.groqApiKey === 'string') {
-        tx.objectStore('settings').put({ key: 'groqApiKey', value: data.settings.groqApiKey });
-      }
       if (typeof data.settings.groqModel === 'string' && data.settings.groqModel.trim()) {
         tx.objectStore('settings').put({ key: 'groqModel', value: data.settings.groqModel.trim() });
       }
-      ['lockEnabled', 'bioEnabled'].forEach(k => {
-        if (typeof data.settings[k] === 'boolean') tx.objectStore('settings').put({ key: k, value: data.settings[k] });
-      });
-      ['pinHash', 'secQuestion', 'secAnswerHash'].forEach(k => {
-        if (typeof data.settings[k] === 'string') tx.objectStore('settings').put({ key: k, value: data.settings[k] });
-      });
     }
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
